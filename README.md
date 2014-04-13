@@ -2,6 +2,14 @@ PopBalloon
 ==========
 
 First Android Game
+====================================================================
+API and support library
+Game Engine: Libgdx (http://libgdx.badlogicgames.com/)
+Physics Engine: Box2D
+Android Game Development Tutorials: http://www.kilobolt.com/unit-4-android-game-development.html
+OpenSource under Apache License
+
+====================================================================
 
 Sample object theme: animals and balloons
 
