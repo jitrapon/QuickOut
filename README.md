@@ -13,7 +13,9 @@ OpenSource under Apache License
 
 Sample object theme: animals and balloons
 
-Gameplay: Objects appear in the screen randomly each level. On the top of the screen, there is a copy of one of the objects onscreen that will appear and vanish. Your goal is to burst the matching objects as many as possible before the copy changes.
+Gameplay: Objects appear in the screen randomly each level. On the top of the screen, 
+there is a copy of one of the objects onscreen that will appear and vanish. Your goal is to burst the 
+matching objects as many as possible before the copy changes.
 
 Burst objects that match what the top says to score points.
 Points will be deducted if you burst the wrong object, or input the wrong action.
