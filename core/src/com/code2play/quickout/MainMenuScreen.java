@@ -4,17 +4,26 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class MainMenuScreen implements Screen {
 	
 	private GameMain game;
 	
 	OrthographicCamera camera;
+	public SpriteBatch batch;
+	public BitmapFont font;
 	private static final int VIRTUAL_WIDTH = Gdx.graphics.getWidth();
 	private static final int VIRTUAL_HEIGHT = Gdx.graphics.getHeight();
 	
+	private int deltaFrame = 0;
+	
 	public MainMenuScreen(final GameMain game) {
 		this.game = game;
+		batch = new SpriteBatch();
+		font = new BitmapFont();
+		font.scale(2);
 		
 		camera = new OrthographicCamera();
         camera.setToOrtho(false, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
@@ -26,17 +35,22 @@ public class MainMenuScreen implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         camera.update();
-        game.batch.setProjectionMatrix(camera.combined);
+        batch.setProjectionMatrix(camera.combined);
 
-        game.batch.begin();
-        game.font.draw(game.batch, "Welcome to my first Android game :)", 100, 150);
-        game.font.draw(game.batch, "Tap anywhere to begin!", 100, 100);
-        game.batch.end();
+        batch.begin();
+        font.draw(batch, "Welcome to my first Android game!", 40, VIRTUAL_HEIGHT/2);
+        if (deltaFrame > 75) {
+        	font.draw(batch, "Tap anywhere to begin", 40, VIRTUAL_HEIGHT/2 - 100);
+        	if (deltaFrame > 150) 
+        		deltaFrame = 0;
+        }
+        batch.end();
 
         if (Gdx.input.isTouched()) {
             game.setScreen(new GameScreen(game));
-            dispose();
         }
+        
+        deltaFrame += 1;
 	}
 
 	@Override
@@ -72,7 +86,8 @@ public class MainMenuScreen implements Screen {
 	@Override
 	public void dispose() {
 		// TODO Auto-generated method stub
-		
+		batch.dispose();
+		font.dispose();
 	}
 
 }
