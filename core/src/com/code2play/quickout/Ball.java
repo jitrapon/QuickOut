@@ -4,6 +4,7 @@ import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.input.GestureDetector.GestureListener;
 import com.badlogic.gdx.math.Vector2;
 
 public class Ball extends Entity {
@@ -11,18 +12,22 @@ public class Ball extends Entity {
 	// physical values
 	private final float restitution = 0.2f;				// coefficient of elasticity (bouncing) 0.0 < e < 1.0
 	private final float mass;
+	public float radius;
 
 	/* ALL BALL STATE (default idle state */
 	public static final int TAPPED = 0;					// indicates the ball is just being tapped 
 	public static final int LONG_TAPPED = 1;			// indicates the ball is just being long-tapped
 	public static final int DRAGGED = 2;				// indicates the ball is just being dragged
+	public static final int FLINGED = 3;				// indicates the ball is just being let go of drag state
 
 	public Ball(Texture texture, float radius, int tag) {
 		super(texture, radius);
 		this.tag = tag;
 		Random random = new Random();
 		velocity = new Vector2(random.nextInt(100), random.nextInt(100));
+//		velocity = new Vector2(0, 0);
 		mass = 1;
+		this.radius = radius;
 	}
 
 	public void checkOtherBallCollision() {
@@ -34,14 +39,33 @@ public class Ball extends Entity {
 			else {
 				Ball other = world.getBalls().get(i);
 				if (this.intersects(other)) {
-					resolveCollisionCircle(this, other);
-					Gdx.app.log("overlap detection", this.tag + " overlaps " + other.tag);
+					resolveCollision(this, other);
+					//					Gdx.app.log("overlap detection", this.tag + " overlaps " + other.tag);
 				}
 			}
 		}
 	}
 
-	private void resolveCollision(Ball A, Ball B) {
+	@Override
+	public void setState(int state) {
+		super.setState(state);
+		
+		switch (state) {
+		case DRAGGED:
+			
+			break;
+		case TAPPED: 
+			x = -500;
+			y = -500;
+			velocity.x = 0;
+			velocity.y = 0;
+			break;
+		default :
+			break;
+		}
+	}
+
+	private void resolveCollision2(Ball A, Ball B) {
 		// Calculate relative velocity
 		Vector2 rv = B.velocity.sub(A.velocity);
 
@@ -64,10 +88,10 @@ public class Ball extends Entity {
 		Vector2 impulse = normal.scl(j);
 		A.velocity = A.velocity.sub(impulse.scl(1 / A.mass));
 		B.velocity = B.velocity.add(impulse.scl(1 / B.mass));
-		
+
 	}
-	
-	private void resolveCollisionCircle(Ball A, Ball B) {
+
+	private void resolveCollision(Ball A, Ball B) {
 		float newVelX1 = (A.velocity.x * (A.mass - B.mass) + (2 * B.mass * B.velocity.x)) / 
 				(A.mass + B.mass);
 		float newVelY1 = (A.velocity.y * (A.mass - B.mass) + (2 * B.mass * B.velocity.y)) / 
@@ -76,7 +100,7 @@ public class Ball extends Entity {
 				(A.mass + B.mass);
 		float newVelY2 = (B.velocity.y * (B.mass - A.mass) + (2 * A.mass * A.velocity.y)) / 
 				(A.mass + B.mass);
-		
+
 		A.velocity.x = newVelX1;
 		A.velocity.y = newVelY1;
 		B.velocity.x = newVelX2;
@@ -96,14 +120,15 @@ public class Ball extends Entity {
 		y += velocity.y * Gdx.graphics.getDeltaTime();
 
 		// on collision with left or right wall
-		if (x < 0 || x > world.getMaxX() - bounds().radius*2) {
+		if (x - bounds().radius < 0 || x + bounds().radius > world.getMaxX()) {
 			velocity.x *= -1;
 		}
 
 		// on collision with bottom or top wall
-		if (y < 0 || y > world.getMaxY() - bounds().radius*2) {
+		if (y - bounds().radius < 0 || y + bounds().radius > world.getMaxY()) {
 			velocity.y *= -1;
 		}
 	}
+
 
 }

@@ -3,6 +3,7 @@ package com.code2play.quickout;
 import java.util.Iterator;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.Array;
 
 /**
@@ -41,7 +42,22 @@ public class World {
 		return VIRTUAL_HEIGHT;
 	}
 	
-	public void addBall(Ball b) {
+	/**
+	 * Spawn a ball on a specified world coordinate
+	 * @param texture The ball's texture
+	 * @param posX	World's x coordinate
+	 * @param posY World's y coordinate
+	 * @param lifeTime This ball's lifetime in seconds before it disappears
+	 */
+	public void spawnBall(Texture t, float posX, float posY, float lifeTime) {
+		Ball ball = new Ball(t, t.getHeight()/2, balls.size + 1);
+		ball.setWorld(this);
+		ball.x = posX;
+		ball.y = posY;
+		addBall(ball);
+	}
+	
+	private void addBall(Ball b) {
 		balls.add(b);
 	}
 	

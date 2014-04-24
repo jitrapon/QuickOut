@@ -86,8 +86,11 @@ public class Entity {
 	/** Switches this game object into a new state and resets {@link #stateTime}.
 	 * @param state the new state. */
 	public void setState(int state) {
-		this.state = state;
-		stateTime = 0.0f;
+		// do nothing if current state equals state
+		if (state != this.state) {
+			this.state = state;
+			stateTime = 0.0f;
+		}
 	}
 	
 	/**
