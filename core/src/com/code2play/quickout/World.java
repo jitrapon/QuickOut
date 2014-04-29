@@ -65,11 +65,23 @@ public class World {
 	 * 
 	 * @param delta the time in seconds since the last render. */
 	public void update(float delta) {
+		// check collisions for all balls
+		checkBallsCollision();
+		
 		Iterator<Ball> iter = balls.iterator();
 		while (iter.hasNext()) {
 			Ball ball = iter.next();
 			ball.update(delta);
 		}
-		
+	}
+	
+	private void checkBallsCollision() {
+		for (int i = 0; i < balls.size; i++) {
+			for (int j = i+1; j < balls.size; j++) {
+				if ( balls.get(i).intersects(balls.get(j)) ) {
+					balls.get(i).resolveCollision(balls.get(j));
+				}
+			}
+		}
 	}
 }

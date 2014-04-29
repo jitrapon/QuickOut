@@ -13,6 +13,7 @@ public class Ball extends Entity {
 	private final float restitution = 0.2f;				// coefficient of elasticity (bouncing) 0.0 < e < 1.0
 	private final float mass;
 	public float radius;
+	public boolean physicsEnabled = true;
 
 	/* ALL BALL STATE (default idle state */
 	public static final int TAPPED = 0;					// indicates the ball is just being tapped 
@@ -24,8 +25,8 @@ public class Ball extends Entity {
 		super(texture, radius);
 		this.tag = tag;
 		Random random = new Random();
-		velocity = new Vector2(random.nextInt(100), random.nextInt(100));
-//		velocity = new Vector2(0, 0);
+		velocity = new Vector2(random.nextInt(50), random.nextInt(50));
+		//		velocity = new Vector2(0, 0);
 		mass = 1;
 		this.radius = radius;
 	}
@@ -39,7 +40,7 @@ public class Ball extends Entity {
 			else {
 				Ball other = world.getBalls().get(i);
 				if (this.intersects(other)) {
-					resolveCollision(this, other);
+					this.resolveCollision(other);
 					//					Gdx.app.log("overlap detection", this.tag + " overlaps " + other.tag);
 				}
 			}
@@ -49,10 +50,13 @@ public class Ball extends Entity {
 	@Override
 	public void setState(int state) {
 		super.setState(state);
-		
+
 		switch (state) {
+		case FLINGED:
+			physicsEnabled  = false;
+			break;
 		case DRAGGED:
-			
+
 			break;
 		case TAPPED: 
 			x = -500;
@@ -91,43 +95,44 @@ public class Ball extends Entity {
 
 	}
 
-	private void resolveCollision(Ball A, Ball B) {
-		float newVelX1 = (A.velocity.x * (A.mass - B.mass) + (2 * B.mass * B.velocity.x)) / 
-				(A.mass + B.mass);
-		float newVelY1 = (A.velocity.y * (A.mass - B.mass) + (2 * B.mass * B.velocity.y)) / 
-				(A.mass + B.mass);
-		float newVelX2 = (B.velocity.x * (B.mass - A.mass) + (2 * A.mass * A.velocity.x)) / 
-				(A.mass + B.mass);
-		float newVelY2 = (B.velocity.y * (B.mass - A.mass) + (2 * A.mass * A.velocity.y)) / 
-				(A.mass + B.mass);
+	public void resolveCollision(Ball other) {
+		float newVelX1 = (this.velocity.x * (this.mass - other.mass) + (2 * other.mass * other.velocity.x)) / 
+				(this.mass + other.mass);
+		float newVelY1 = (this.velocity.y * (this.mass - other.mass) + (2 * other.mass * other.velocity.y)) / 
+				(this.mass + other.mass);
+		float newVelX2 = (other.velocity.x * (other.mass - this.mass) + (2 * this.mass * this.velocity.x)) / 
+				(this.mass + other.mass);
+		float newVelY2 = (other.velocity.y * (other.mass - this.mass) + (2 * this.mass * this.velocity.y)) / 
+				(this.mass + other.mass);
 
-		A.velocity.x = newVelX1;
-		A.velocity.y = newVelY1;
-		B.velocity.x = newVelX2;
-		B.velocity.y = newVelY2;
+		this.velocity.x = newVelX1;
+		this.velocity.y = newVelY1;
+		other.velocity.x = newVelX2;
+		other.velocity.y = newVelY2;
 	}
 
 	public void update(float delta) {
 		// update state time
 		stateTime += delta;
 
-		// handles collision in the world
-		checkOtherBallCollision();
-
-		// update its position
-		// make sure the object stay within the screen bounds and bounce around if NOT dragged
-		x += velocity.x * Gdx.graphics.getDeltaTime();
-		y += velocity.y * Gdx.graphics.getDeltaTime();
+		//		// handles collision in the world
+		//		checkOtherBallCollision();
 
 		// on collision with left or right wall
-		if (x - bounds().radius < 0 || x + bounds().radius > world.getMaxX()) {
-			velocity.x *= -1;
-		}
+		if (physicsEnabled) {
+			if (x - bounds().radius < 0 || x + bounds().radius > world.getMaxX()) {
+				velocity.x *= -1;
+			}
 
-		// on collision with bottom or top wall
-		if (y - bounds().radius < 0 || y + bounds().radius > world.getMaxY()) {
-			velocity.y *= -1;
+			// on collision with bottom or top wall
+			if (y - bounds().radius < 0 || y + bounds().radius > world.getMaxY()) {
+				velocity.y *= -1;
+			}
 		}
+		
+		// update its position
+		// make sure the object stay within the screen bounds and bounce around if NOT dragged
+		this.moveBy(velocity.x * Gdx.graphics.getDeltaTime(), velocity.y * Gdx.graphics.getDeltaTime());
 	}
 
 

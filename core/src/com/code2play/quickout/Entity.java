@@ -56,6 +56,8 @@ public class Entity {
 		stateTime = 0.0f;
 		inCollision = false;
 		bounds = new Circle();
+		bounds.x = x;
+		bounds.y = y;
 		state = INACTIVE;
 	}
 	
@@ -64,6 +66,8 @@ public class Entity {
 		inCollision = false;
 		bounds = new Circle();
 		bounds.radius = radius;
+		bounds.x = x;
+		bounds.y = y;
 		width = radius;
 		height = radius;
 		texture = text;
@@ -91,6 +95,30 @@ public class Entity {
 			this.state = state;
 			stateTime = 0.0f;
 		}
+	}
+	
+	/**
+	 * Move the entity to the specified coordinate world's space
+	 * @param posX
+	 * @param posY
+	 */
+	public void moveTo(float posX, float posY) {
+		x = posX;
+		y = posY;
+		bounds.x = x;
+		bounds.y = y;
+	}
+	
+	/**
+	 * Move the entity by the amount specified in world's space
+	 * @param stepX
+	 * @param stepY
+	 */
+	public void moveBy(float stepX, float stepY) {
+		x += stepX;
+		y += stepY;
+		bounds.x += stepX;
+		bounds.y += stepY;
 	}
 	
 	/**
