@@ -4,7 +4,6 @@ import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.input.GestureDetector.GestureListener;
 import com.badlogic.gdx.math.Vector2;
 
 public class Ball extends Entity {
@@ -31,70 +30,15 @@ public class Ball extends Entity {
 		this.radius = radius;
 	}
 
-	public void checkOtherBallCollision() {
-		for (int i = 0, size = world.getBalls().size; i < size; i++) {
-			if (i == tag-1) {
-				// don't check against itself!
-				continue; 
-			}
-			else {
-				Ball other = world.getBalls().get(i);
-				if (this.intersects(other)) {
-					this.resolveCollision(other);
-					//					Gdx.app.log("overlap detection", this.tag + " overlaps " + other.tag);
-				}
-			}
-		}
-	}
-
 	@Override
 	public void setState(int state) {
 		super.setState(state);
-
-		switch (state) {
-		case FLINGED:
-			physicsEnabled  = false;
-			break;
-		case DRAGGED:
-
-			break;
-		case TAPPED: 
-			x = -500;
-			y = -500;
-			velocity.x = 0;
-			velocity.y = 0;
-			break;
-		default :
-			break;
-		}
 	}
 
-	private void resolveCollision2(Ball A, Ball B) {
-		// Calculate relative velocity
-		Vector2 rv = B.velocity.sub(A.velocity);
-
-		// Calculate relative velocity in terms of the normal direction
-		Vector2 normal = new Vector2(B.x - A.x, B.y - A.y);
-		float velAlongNormal = rv.dot(normal.nor());
-
-		// Do not resolve if velocities are separating
-		if(velAlongNormal > 0)
-			return;
-
-		// Calculate restitution
-		float e = Math.min(A.restitution, B.restitution);
-
-		// Calculate impulse scalar
-		float j = -(1 + e) * velAlongNormal;
-		j /= (1 / A.mass) + (1 / B.mass);
-
-		// Apply impulse
-		Vector2 impulse = normal.scl(j);
-		A.velocity = A.velocity.sub(impulse.scl(1 / A.mass));
-		B.velocity = B.velocity.add(impulse.scl(1 / B.mass));
-
-	}
-
+	/**
+	 * @deprecated This method is no longer in use, but is kept for reference for collision
+	 * @param other
+	 */
 	public void resolveCollision(Ball other) {
 		float newVelX1 = (this.velocity.x * (this.mass - other.mass) + (2 * other.mass * other.velocity.x)) / 
 				(this.mass + other.mass);
@@ -111,28 +55,60 @@ public class Ball extends Entity {
 		other.velocity.y = newVelY2;
 	}
 
+	/**
+	 * Update the ball by each iteration of the world step
+	 */
+	@Override
 	public void update(float delta) {
+		// check state
+		switch (state) {
+		
+		/* the ball is tapped once */
+		case TAPPED:
+			moveTo(-1200, -1200);
+			break;
+			
+		/* the ball is currently being dragged */
+		case DRAGGED:
+			break;
+			
+		/* the ball is just released of the drag */
+		case FLINGED:
+			physicsEnabled  = false;
+			break;
+			
+		/* default state is INACTIVE, which means that the ball's state is determined by the 
+		 physics engine */
+		default:
+			x = body.getPosition().x * BOX_TO_WORLD;
+			y = body.getPosition().y * BOX_TO_WORLD;
+			break;
+		}
+		
 		// update state time
 		stateTime += delta;
 
-		//		// handles collision in the world
-		//		checkOtherBallCollision();
+		if (tag==2) Gdx.app.log("Position", "Ball " + tag + " position is " + x + ", " + y);
 
 		// on collision with left or right wall
 		if (physicsEnabled) {
-			if (x - bounds().radius < 0 || x + bounds().radius > world.getMaxX()) {
-				velocity.x *= -1;
+			if (x - bounds().radius < 0 || x + bounds().radius > level.getMaxX()) {
+				Vector2 vec = getVelocity();
+				vec.x *= -1.0f;
+				setVelocity(vec);
 			}
 
 			// on collision with bottom or top wall
-			if (y - bounds().radius < 0 || y + bounds().radius > world.getMaxY()) {
-				velocity.y *= -1;
+			if (y - bounds().radius < 0 || y + bounds().radius > level.getMaxY()) {
+				Vector2 vec = getVelocity();
+				vec.y *= -1.0f;
+				setVelocity(vec);
 			}
 		}
-		
+
 		// update its position
 		// make sure the object stay within the screen bounds and bounce around if NOT dragged
-		this.moveBy(velocity.x * Gdx.graphics.getDeltaTime(), velocity.y * Gdx.graphics.getDeltaTime());
+		//		this.moveBy(velocity.x * Gdx.graphics.getDeltaTime(), velocity.y * Gdx.graphics.getDeltaTime());
 	}
 
 

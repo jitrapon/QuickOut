@@ -7,14 +7,14 @@ import com.badlogic.gdx.Screen;
 public class GameScreen implements Screen {
 
 	private GameMain game;
-	private World world;
+	private Level level;
 	private WorldView worldView;
 
 	public GameScreen(GameMain g) {
 		// game instance is the same one as the first created
 		game = g;
-		world = new World();
-		worldView = new WorldView(world);
+		level = new Level();
+		worldView = new WorldView(level);
 	}
 
 	@Override
@@ -24,7 +24,7 @@ public class GameScreen implements Screen {
 	 */
 	public void render(float delta) {
 		// If we're not paused then update the world and the subsystems.
-		world.update(delta);
+		level.update(delta);
 		
 		// Clear the screen and draw the views.
 		worldView.render(delta);
