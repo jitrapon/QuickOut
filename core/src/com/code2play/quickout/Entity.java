@@ -92,6 +92,10 @@ public class Entity {
 		texture = text;
 	}
 	
+	public Body getBody() {
+		return body;
+	}
+	
 	/**
 	 * Attach the Box2D physics body to this entity
 	 * @param x Initial x position

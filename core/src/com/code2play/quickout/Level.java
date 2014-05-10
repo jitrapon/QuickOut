@@ -5,8 +5,12 @@ import java.util.Iterator;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
-import com.badlogic.gdx.physics.box2d.joints.MouseJoint;
 import com.badlogic.gdx.utils.Array;
 
 /**
@@ -23,20 +27,25 @@ public class Level {
 	private float timeStep = 1/45f;
 	private int velocityIterations = 6;
 	private int positionIterations = 2;
-	
+
 	private static final int MAX_NUM_OBJECT_ONSCREEN = 15;
 	private static final int VIRTUAL_WIDTH = Gdx.graphics.getWidth();
 	private static final int VIRTUAL_HEIGHT = Gdx.graphics.getHeight();
 
 	private Array<Ball> balls;
-	
+
+	private Body groundBody;
+
 	Vector2 lastVel = new Vector2();
+	
+	public static final float WORLD_TO_BOX = 1/75f;		
+	public static final float BOX_TO_WORLD = 75.0f;	
 
 	public Level() {
 		// construct the world object. this object contains all physics objects/bodies and simulates
 		// interactions between them. 
-		world = new World(gravity, false);
-		
+		world = new World(gravity, true);
+
 		balls = new Array<Ball>(MAX_NUM_OBJECT_ONSCREEN);
 	}
 
@@ -55,7 +64,7 @@ public class Level {
 	public int getMaxY() {
 		return VIRTUAL_HEIGHT;
 	}
-	
+
 	public World getPhysicsWorld() {
 		return world;
 	}
@@ -75,8 +84,36 @@ public class Level {
 		return ball;
 	}
 
+	public void createGroundBody() {
+		PolygonShape groundPoly = new PolygonShape();
+		groundPoly.setAsBox(50, 1);
+
+		BodyDef groundBodyDef = new BodyDef();
+		groundBodyDef.type = BodyType.StaticBody;
+		groundBodyDef.position.set(-1000 * WORLD_TO_BOX, -1000 * WORLD_TO_BOX);
+		groundBody = world.createBody(groundBodyDef);
+
+		FixtureDef fixtureDef = new FixtureDef();
+		fixtureDef.shape = groundPoly;
+		fixtureDef.filter.groupIndex = 0;
+		groundBody.createFixture(fixtureDef);
+		groundPoly.dispose();
+	}
+	
+	public Body getGroundBody() {
+		return groundBody;
+	}
+
 	private void addBall(Ball b) {
 		balls.add(b);
+	}
+	
+	public float getWorldToBoxMultiplier() {
+		return WORLD_TO_BOX;
+	}
+	
+	public float getBoxToWorldMultiplier() {
+		return BOX_TO_WORLD;
 	}
 
 	/** Called when the World is to be updated.
@@ -84,8 +121,8 @@ public class Level {
 	 * @param delta the time in seconds since the last render. */
 	public void update(float delta) {
 		// check collisions for all balls
-//		checkBallsCollision();
-		
+		//		checkBallsCollision();
+
 		world.step(timeStep, velocityIterations, positionIterations);
 
 		Iterator<Ball> iter = balls.iterator();
@@ -99,15 +136,15 @@ public class Level {
 	 * @deprecated
 	 */
 	private void checkBallsCollision() {
-		
+
 		//TODO: figure out the balls that are simultaneously colliding
 		for (int i = 0; i < balls.size; i++) {
 			for (int j = i+1; j < balls.size; j++) {
 				balls.get(i).intersects(balls.get(j));
 			}
 		}
-		
-		
+
+
 		for (int i = 0; i < balls.size; i++) {
 			for (int j = i+1; j < balls.size; j++) {
 				//TODO change to ball.collideWith(otherBall)
@@ -120,17 +157,17 @@ public class Level {
 					Gdx.app.log("velocity", "Ball " + i + " new velocity x: " + balls.get(i).velocity.x);
 					Gdx.app.log("velocity", "Ball " + j + " new velocity x: " + balls.get(j).velocity.x);
 				}
-				
+
 				// if this ball is already in collision with other balls, we accumulate the velocity changes
 				if ( balls.get(i).collisionCount > 1 ) {
-//					balls.get(i).setVelocity( lastVel.add(balls.get(i).velocity) );
+					//					balls.get(i).setVelocity( lastVel.add(balls.get(i).velocity) );
 					Gdx.app.log("velocity", "Ball " + i + " accumulated velocity so far: " + balls.get(i).velocity.x);
 				}
 			}
 		}
-		
-//		balls.get(1).setVelocity(new Vector2());
-//		Gdx.app.log("velocity", "ball 0 velocity x: " + balls.get(0).velocity.x);
+
+		//		balls.get(1).setVelocity(new Vector2());
+		//		Gdx.app.log("velocity", "ball 0 velocity x: " + balls.get(0).velocity.x);
 
 		for (int i = 0; i < balls.size; i++) {
 			Gdx.app.log("velocity", "Ball " + i + " final velocity: " + balls.get(i).velocity.x);

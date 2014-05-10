@@ -70,11 +70,15 @@ public class Ball extends Entity {
 			
 		/* the ball is currently being dragged */
 		case DRAGGED:
+			x = body.getPosition().x * BOX_TO_WORLD;
+			y = body.getPosition().y * BOX_TO_WORLD;
 			break;
 			
 		/* the ball is just released of the drag */
 		case FLINGED:
-			physicsEnabled  = false;
+//			physicsEnabled  = false;
+			x = body.getPosition().x * BOX_TO_WORLD;
+			y = body.getPosition().y * BOX_TO_WORLD;
 			break;
 			
 		/* default state is INACTIVE, which means that the ball's state is determined by the 
@@ -88,7 +92,7 @@ public class Ball extends Entity {
 		// update state time
 		stateTime += delta;
 
-		if (tag==2) Gdx.app.log("Position", "Ball " + tag + " position is " + x + ", " + y);
+//		if (tag==2) Gdx.app.log("Position", "Ball " + tag + " position is " + x + ", " + y);
 
 		// on collision with left or right wall
 		if (physicsEnabled) {

@@ -13,6 +13,7 @@ import com.badlogic.gdx.input.GestureDetector.GestureListener;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.joints.MouseJoint;
+import com.badlogic.gdx.physics.box2d.joints.MouseJointDef;
 
 /**
  * WorldView renders all the entities that belong to a World. 
@@ -30,10 +31,7 @@ public class WorldView implements GestureListener {
 	private SpriteBatch batch;
 	private BitmapFont font;
 
-	private float lastDeltaTime;
-	private float lastPosX;
-	private float lastPosY;
-	private Ball draggedBall;
+	private Ball draggedBall;					// specifies which ball is currently being dragged
 
 	private int currText = -1;
 
@@ -59,7 +57,8 @@ public class WorldView implements GestureListener {
 	}
 
 	public void spawnSimultaneousCollisionTest() {
-//		float vel = 1.1f; // min
+		level.createGroundBody();
+		//		float vel = 1.1f; // min
 		float vel = 3.5f;
 		Texture texture = getNextTexture();
 		Ball b = level.spawnBall(texture, (float)(0.27*1*VIRTUAL_WIDTH), 
@@ -75,12 +74,12 @@ public class WorldView implements GestureListener {
 		b = level.spawnBall(texture, (float)(0.27*3*VIRTUAL_WIDTH), 
 				(float)(0.5*VIRTUAL_HEIGHT), -1.0f);
 		b.setVelocity(new Vector2(vel*-1, 0));
-		
+
 		texture = getNextTexture();
 		b = level.spawnBall(texture, (float)(0.27*2*VIRTUAL_WIDTH), 
 				(float)(0.75*VIRTUAL_HEIGHT), -1.0f);
 		b.setVelocity(new Vector2(0, vel*-1));
-		
+
 		texture = getNextTexture();
 		b = level.spawnBall(texture, (float)(0.27*2*VIRTUAL_WIDTH), 
 				(float)(0.25*VIRTUAL_HEIGHT), -1.0f);
@@ -178,43 +177,58 @@ public class WorldView implements GestureListener {
 	public boolean fling(float velocityX, float velocityY, int button) {
 		if (draggedBall != null) {
 			draggedBall.setState(Ball.FLINGED);
-//			draggedBall.setVelocity(new Vector2(velocityX * 0.01f, -velocityY * 0.01f));
-//			draggedBall.velocity.x = velocityX;
-//			draggedBall.velocity.y = -velocityY;
 		}
 		draggedBall = null;
 		return false;
 	}
 
+	Vector3 touchPos = new Vector3();
+
+	/** another temporary vector **/
+	Vector2 target = new Vector2();
 	@Override
 	public boolean pan(float x, float y, float deltaX, float deltaY) {
 		//		Gdx.app.log("pan", x + ", " + y + ", delta(" + deltaX + ", " + deltaY + ")");
-		for (Ball b : level.getBalls()) {
-			Vector2 ballPos = new Vector2(b.x, b.y);
-			Vector3 touchPos = new Vector3(x, y, 0);
-			camera.unproject(touchPos);
-			if (b.bounds().radius >= Math.abs(ballPos.dst(new Vector2(touchPos.x, touchPos.y))))  {
-				b.setState(Ball.DRAGGED);
-				b.moveTo(touchPos.x, touchPos.y);
+		touchPos.set(x, y, 0);
+		camera.unproject(touchPos);
 
-				// get current drag speed by choosing time interval using deltaFrame
-				if (b.stateTime == 0.0f) {
-					lastDeltaTime = b.stateTime;
-					lastPosX = touchPos.x;
-					lastPosY = touchPos.y;
+		// if we haven't started dragging yet
+		if (mouseJoint == null) {
+			for (Ball b : level.getBalls()) {
+				Vector2 ballPos = new Vector2(b.x, b.y);
+				if (b.bounds().radius >= Math.abs(ballPos.dst(new Vector2(touchPos.x, touchPos.y)))) {
+					b.setState(Ball.DRAGGED);
+					//				b.moveTo(touchPos.x, touchPos.y);
+
+					// init mousejoint
+					MouseJointDef mJointDef = new MouseJointDef();
+					mJointDef.bodyA = level.getGroundBody();
+					mJointDef.bodyB = b.getBody();
+					mJointDef.dampingRatio = 0.0f;
+//					mJointDef.frequencyHz = 0.2f;
+					mJointDef.collideConnected = true;
+					mJointDef.target.set(touchPos.x * level.getWorldToBoxMultiplier(), touchPos.y * level.getWorldToBoxMultiplier());
+					mJointDef.maxForce = 500.0f * b.getBody().getMass();
+
+					mouseJoint = (MouseJoint)level.getPhysicsWorld().createJoint(mJointDef);
+					b.getBody().setAwake(true);
+
+					draggedBall = b;
 				}
-
-				if (b.stateTime - lastDeltaTime > 0.05f) {
-					lastDeltaTime = b.stateTime;
-					b.velocity.x = touchPos.x - lastPosX;
-					b.velocity.y = touchPos.y - lastPosY;
-					lastPosX = touchPos.x;
-					lastPosY = touchPos.y;
-				}
-
-				draggedBall = b;
 			}
+			Gdx.app.log("Drag", "Drag position is " + touchPos.x + ", " + touchPos.y);
 		}
+
+		// if a mouse joint exists we simply update
+		// the target of the joint based on the new
+		// mouse coordinates
+		else {
+			mouseJoint.setTarget(target.set(touchPos.x * level.getWorldToBoxMultiplier(), 
+					touchPos.y * level.getWorldToBoxMultiplier()));
+			Gdx.app.log("Drag", "Drag position is " + touchPos.x + ", " + touchPos.y);
+		}
+		
+		
 		return false;
 	}
 
@@ -222,6 +236,12 @@ public class WorldView implements GestureListener {
 	public boolean panStop(float x, float y, int pointer, int button) {
 		if (draggedBall != null) {
 			draggedBall.setState(Ball.INACTIVE);
+		}
+
+		// if a mouse joint exists we simply destroy it
+		if (mouseJoint != null) {
+			level.getPhysicsWorld().destroyJoint(mouseJoint);
+			mouseJoint = null;
 		}
 		return false;
 	}
