@@ -8,6 +8,7 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.CircleShape;
+import com.badlogic.gdx.physics.box2d.Filter;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 
 /**
@@ -96,12 +97,20 @@ public class Entity {
 		return body;
 	}
 	
+	public void setFilterData(Filter filter) {
+		body.getFixtureList().get(0).setFilterData(filter);
+	}
+	
+	public Filter getFilterData() {
+		return body.getFixtureList().get(0).getFilterData();
+	}
+	
 	/**
 	 * Attach the Box2D physics body to this entity
 	 * @param x Initial x position
 	 * @param y Initial y position
 	 */
-	public void attachPhysicsBody(float radius, float x, float y, float density, float linearDamping, 
+	public void attachPhysicsBody(short categoryBits, float radius, float x, float y, float density, float linearDamping, 
 			float friction, float restitution) {
 		
 		// First we create a body definition
@@ -131,6 +140,9 @@ public class Entity {
 		fixtureDef.density = density; 
 		fixtureDef.friction = friction;
 		fixtureDef.restitution = restitution; 
+		
+		// Default fixture category bits for collision filtering in-game
+		fixtureDef.filter.categoryBits = categoryBits;
 		
 		body.createFixture(fixtureDef);
 		

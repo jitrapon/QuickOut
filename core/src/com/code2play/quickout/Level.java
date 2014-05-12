@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
+import com.badlogic.gdx.physics.box2d.EdgeShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
@@ -34,9 +35,23 @@ public class Level {
 
 	private Array<Ball> balls;
 
-	private Body groundBody;
+	private Body groundBody;	// used as anchor for mousejoint only
 
 	Vector2 lastVel = new Vector2();
+	
+	public enum EntityType {
+		WALL((short)1), BALL((short)2), SPECIAL((short)4);
+		
+		private short categoryBits;
+		
+		EntityType(short categoryBits) {
+			this.categoryBits = categoryBits;
+		}
+		
+		public short getCategoryBits() {
+			return categoryBits;
+		}
+	}
 	
 	public static final float WORLD_TO_BOX = 1/75f;		
 	public static final float BOX_TO_WORLD = 75.0f;	
@@ -79,7 +94,7 @@ public class Level {
 	public Ball spawnBall(Texture t, float posX, float posY, float lifeTime) {
 		Ball ball = new Ball(t, t.getHeight()/2f, balls.size + 1);
 		ball.setWorld(this);
-		ball.attachPhysicsBody(ball.radius, posX, posY, 1.0f, 0.1f, 1.0f, 1.0f);
+		ball.attachPhysicsBody(EntityType.BALL.categoryBits, ball.radius, posX, posY, 1.0f, 1.0f, 1.0f, 1.0f);
 		addBall(ball);
 		return ball;
 	}
@@ -98,6 +113,43 @@ public class Level {
 		fixtureDef.filter.groupIndex = 0;
 		groundBody.createFixture(fixtureDef);
 		groundPoly.dispose();
+	}
+	
+	public void createWallBoundary() {
+		float width = VIRTUAL_WIDTH * WORLD_TO_BOX;
+		float height = VIRTUAL_HEIGHT * WORLD_TO_BOX;
+		Vector2 lowerLeftCorner = new Vector2();
+		Vector2 lowerRightCorner = new Vector2(width, 0);
+		Vector2 upperLeftCorner = new Vector2(0, height);
+		Vector2 upperRightCorner  = new Vector2(width, height);
+		
+		// static container body, with the collisions at screen borders
+		BodyDef wallDef = new BodyDef();
+		wallDef.position.set(0, 0);
+		Body wallBody = world.createBody(wallDef);
+		EdgeShape borderShape = new EdgeShape();
+		FixtureDef fixtureDef = new FixtureDef(); 
+		
+		// Create fixtures for the four borders (the border shape is re-used)
+		borderShape.set(lowerLeftCorner, lowerRightCorner);
+		fixtureDef.shape = borderShape;
+		fixtureDef.filter.categoryBits = EntityType.WALL.categoryBits;
+		fixtureDef.density = 0;
+		wallBody.createFixture(fixtureDef);
+		
+		borderShape.set(lowerRightCorner, upperRightCorner);
+		fixtureDef.shape = borderShape;
+		wallBody.createFixture(fixtureDef);
+		
+		borderShape.set(upperRightCorner, upperLeftCorner);
+		fixtureDef.shape = borderShape;
+		wallBody.createFixture(fixtureDef);
+		
+		borderShape.set(upperLeftCorner, lowerLeftCorner);
+		fixtureDef.shape = borderShape;
+		wallBody.createFixture(fixtureDef);
+		
+		borderShape.dispose();
 	}
 	
 	public Body getGroundBody() {

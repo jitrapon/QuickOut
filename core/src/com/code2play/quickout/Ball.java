@@ -5,6 +5,8 @@ import java.util.Random;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Filter;
+import com.code2play.quickout.Level.EntityType;
 
 public class Ball extends Entity {
 
@@ -60,6 +62,7 @@ public class Ball extends Entity {
 	 */
 	@Override
 	public void update(float delta) {
+		
 		// check state
 		switch (state) {
 		
@@ -70,50 +73,27 @@ public class Ball extends Entity {
 			
 		/* the ball is currently being dragged */
 		case DRAGGED:
-			x = body.getPosition().x * BOX_TO_WORLD;
-			y = body.getPosition().y * BOX_TO_WORLD;
+			
 			break;
 			
-		/* the ball is just released of the drag */
+		/* the ball is just released of the drag with certain velocity threshold*/
 		case FLINGED:
-//			physicsEnabled  = false;
-			x = body.getPosition().x * BOX_TO_WORLD;
-			y = body.getPosition().y * BOX_TO_WORLD;
+			// get existing fixture and change category bits to filter wall collision out
+			Filter filter = this.getFilterData();
+			filter.maskBits = EntityType.BALL.getCategoryBits();
+			this.setFilterData(filter);
 			break;
 			
-		/* default state is INACTIVE, which means that the ball's state is determined by the 
-		 physics engine */
+		/* default state is INACTIVE */
 		default:
-			x = body.getPosition().x * BOX_TO_WORLD;
-			y = body.getPosition().y * BOX_TO_WORLD;
+
 			break;
 		}
 		
 		// update state time
 		stateTime += delta;
-
-//		if (tag==2) Gdx.app.log("Position", "Ball " + tag + " position is " + x + ", " + y);
-
-		// on collision with left or right wall
-		if (physicsEnabled) {
-			if (x - bounds().radius < 0 || x + bounds().radius > level.getMaxX()) {
-				Vector2 vec = getVelocity();
-				vec.x *= -1.0f;
-				setVelocity(vec);
-			}
-
-			// on collision with bottom or top wall
-			if (y - bounds().radius < 0 || y + bounds().radius > level.getMaxY()) {
-				Vector2 vec = getVelocity();
-				vec.y *= -1.0f;
-				setVelocity(vec);
-			}
-		}
-
-		// update its position
-		// make sure the object stay within the screen bounds and bounce around if NOT dragged
-		//		this.moveBy(velocity.x * Gdx.graphics.getDeltaTime(), velocity.y * Gdx.graphics.getDeltaTime());
+		
+		x = body.getPosition().x * BOX_TO_WORLD;
+		y = body.getPosition().y * BOX_TO_WORLD;
 	}
-
-
 }

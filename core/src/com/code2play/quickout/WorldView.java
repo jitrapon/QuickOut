@@ -58,6 +58,8 @@ public class WorldView implements GestureListener {
 
 	public void spawnSimultaneousCollisionTest() {
 		level.createGroundBody();
+		level.createWallBoundary();
+		
 		//		float vel = 1.1f; // min
 		float vel = 3.5f;
 		Texture texture = getNextTexture();
@@ -216,7 +218,7 @@ public class WorldView implements GestureListener {
 					draggedBall = b;
 				}
 			}
-			Gdx.app.log("Drag", "Drag position is " + touchPos.x + ", " + touchPos.y);
+//			Gdx.app.log("Drag", "Drag position is " + touchPos.x + ", " + touchPos.y);
 		}
 
 		// if a mouse joint exists we simply update
@@ -225,7 +227,7 @@ public class WorldView implements GestureListener {
 		else {
 			mouseJoint.setTarget(target.set(touchPos.x * level.getWorldToBoxMultiplier(), 
 					touchPos.y * level.getWorldToBoxMultiplier()));
-			Gdx.app.log("Drag", "Drag position is " + touchPos.x + ", " + touchPos.y);
+//			Gdx.app.log("Drag", "Drag position is " + touchPos.x + ", " + touchPos.y);
 		}
 		
 		
