@@ -3,6 +3,7 @@ package com.code2play.quickout;
 import java.util.Iterator;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Peripheral;
 import com.badlogic.gdx.graphics.FPSLogger;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -50,7 +51,7 @@ public class WorldView implements GestureListener {
 		font = new BitmapFont();
 
 		level.debugInit();
-//		level.init();
+		//		level.init();
 
 		gestureDetector = new GestureDetector(20, 0.5f, 2, 0.15f, this);
 		Gdx.input.setInputProcessor(gestureDetector);
@@ -62,8 +63,8 @@ public class WorldView implements GestureListener {
 	 * */
 	public void render(float delta) {
 		// debug fps log
-//		fpsLogger.log();
-		
+		//		fpsLogger.log();
+
 		// clear the screen with a dark blue color. The
 		// arguments to glClearColor are the red, green
 		// blue and alpha component in the range [0,1]
@@ -88,6 +89,23 @@ public class WorldView implements GestureListener {
 		// player has tapped the screen
 		if (Gdx.input.justTouched()) {
 		}
+
+		// for gravity-enabled levels
+		if (Gdx.input.isPeripheralAvailable(Peripheral.Accelerometer) == true) { 
+			processAccelerometer();
+		}
+	}
+
+	float prevAccelX = 0.0f;
+	float prevAccelY = 0.0f;
+	private void processAccelerometer() {
+		float y = Gdx.input.getAccelerometerY();
+		float x = Gdx.input.getAccelerometerX();
+		if ((prevAccelX != x) || prevAccelY != y) {
+			level.getPhysicsWorld().setGravity( new Vector2(-x, -y) );//Negative on the x, but not on the Y. Somewhat geocentric view.
+			prevAccelX = x;
+			prevAccelY = y;
+		}
 	}
 
 	public void drawBalls() {
@@ -105,7 +123,7 @@ public class WorldView implements GestureListener {
 
 	Vector3 touchPos = new Vector3();
 	Vector2 ballPos = new Vector2();
-	
+
 	@Override
 	public boolean touchDown(float x, float y, int pointer, int button) {
 		return false;
@@ -161,7 +179,7 @@ public class WorldView implements GestureListener {
 					mJointDef.bodyA = level.getGroundBody();
 					mJointDef.bodyB = b.getBody();
 					mJointDef.dampingRatio = 0.0f;
-//					mJointDef.frequencyHz = 0.2f;
+					//					mJointDef.frequencyHz = 0.2f;
 					mJointDef.collideConnected = true;
 					mJointDef.target.set(touchPos.x * level.getWorldToBoxMultiplier(), touchPos.y * level.getWorldToBoxMultiplier());
 					mJointDef.maxForce = 500.0f * b.getBody().getMass();
@@ -172,7 +190,7 @@ public class WorldView implements GestureListener {
 					draggedBall = b;
 				}
 			}
-//			Gdx.app.log("Drag", "Drag position is " + touchPos.x + ", " + touchPos.y);
+			//			Gdx.app.log("Drag", "Drag position is " + touchPos.x + ", " + touchPos.y);
 		}
 
 		// if a mouse joint exists we simply update
@@ -181,10 +199,10 @@ public class WorldView implements GestureListener {
 		else {
 			mouseJoint.setTarget(target.set(touchPos.x * level.getWorldToBoxMultiplier(), 
 					touchPos.y * level.getWorldToBoxMultiplier()));
-//			Gdx.app.log("Drag", "Drag position is " + touchPos.x + ", " + touchPos.y);
+			//			Gdx.app.log("Drag", "Drag position is " + touchPos.x + ", " + touchPos.y);
 		}
-		
-		
+
+
 		return false;
 	}
 
