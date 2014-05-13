@@ -66,8 +66,9 @@ public class Ball extends Entity {
 		
 		/* the ball is tapped once */
 		case TAPPED:
-			moveTo(-1200, -1200);
-			break;
+//			moveTo(-1200, -1200);
+			dispose();
+			return;
 			
 		/* the ball is currently being dragged */
 		case DRAGGED:
@@ -93,5 +94,11 @@ public class Ball extends Entity {
 		
 		x = body.getPosition().x * BOX_TO_WORLD;
 		y = body.getPosition().y * BOX_TO_WORLD;
+	}
+	
+	@Override
+	public void dispose() {
+		level.getPhysicsWorld().destroyBody(body);
+		body = null;
 	}
 }

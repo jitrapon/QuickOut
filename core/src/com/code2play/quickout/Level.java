@@ -276,7 +276,12 @@ public class Level {
 			Ball ball = iter.next();
 			ball.update(delta);
 			
+			// remove entities that are flagged as TAPPED 
+			// so they won't be rendered
 			if (ball.state == ball.TAPPED) {
+				iter.remove();
+				time = 0.0f;	// reset spawn timer
+//				Gdx.app.log("Balls count", "Number of balls is " + balls.size);
 			}
 		}
 
@@ -289,11 +294,6 @@ public class Level {
 				time = 0.0f;
 			}
 		}
-		
-		
-		
-		
-		
 		time += delta;
 	}
 	
