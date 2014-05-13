@@ -2,7 +2,6 @@ package com.code2play.quickout;
 
 import java.util.Random;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Filter;
@@ -11,7 +10,6 @@ import com.code2play.quickout.Level.EntityType;
 public class Ball extends Entity {
 
 	// physical values
-	private final float restitution = 0.2f;				// coefficient of elasticity (bouncing) 0.0 < e < 1.0
 	private final float mass;
 	public float radius;
 	public boolean physicsEnabled = true;

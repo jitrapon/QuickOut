@@ -36,12 +36,25 @@ Pattern matching challenge example :
 
 Bonus object:
 
-1. x2 score for x seconds
+1. x2 score for x seconds (Golden touch)
 2. slow change rate
 3. slow disappearance rate
 4. change every object to current match for x seconds
 5. explode all objects 
 6. helper AI to help for every correct action you make, and there is another object to match, the AI helper will do the same to one object.
+7. Fast moving balls
+8. Small balls
+9. Slow timer
+10. No points deduction
+
+Round rules:
+1. Combo enabled
+2. 3-Bounce-gone
+3. 3-Bounce-change-type
+4. Gravity-enabled
+5. Bomb Detonator (Drag or long-press or tap 50 times)
+6. x2 points reduction
+7. No boundary
 
 Business model
 1. Score sharing. Challenge players on social media.

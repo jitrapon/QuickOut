@@ -3,9 +3,9 @@ package com.code2play.quickout;
 import java.util.Iterator;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.FPSLogger;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.input.GestureDetector;
@@ -30,10 +30,9 @@ public class WorldView implements GestureListener {
 	private OrthographicCamera camera;
 	private SpriteBatch batch;
 	private BitmapFont font;
+	private FPSLogger fpsLogger;
 
 	private Ball draggedBall;					// specifies which ball is currently being dragged
-
-	private int currText = -1;
 
 	GestureDetector gestureDetector;
 
@@ -41,6 +40,7 @@ public class WorldView implements GestureListener {
 	protected MouseJoint mouseJoint = null;
 
 	public WorldView(Level level) {
+		fpsLogger = new FPSLogger();
 		this.level = level;
 
 		// create the camera
@@ -49,54 +49,11 @@ public class WorldView implements GestureListener {
 		batch = new SpriteBatch();
 		font = new BitmapFont();
 
-		//		spawnSimpleGridLevel();
-		spawnSimultaneousCollisionTest();
+		level.debugInit();
+//		level.init();
 
 		gestureDetector = new GestureDetector(20, 0.5f, 2, 0.15f, this);
 		Gdx.input.setInputProcessor(gestureDetector);
-	}
-
-	public void spawnSimultaneousCollisionTest() {
-		level.createGroundBody();
-		level.createWallBoundary();
-		
-		//		float vel = 1.1f; // min
-		float vel = 3.5f;
-		Texture texture = getNextTexture();
-		Ball b = level.spawnBall(texture, (float)(0.27*1*VIRTUAL_WIDTH), 
-				(float)(0.5*VIRTUAL_HEIGHT), -1.0f);
-		b.setVelocity(new Vector2(vel, 0));
-
-		texture = getNextTexture();
-		b = level.spawnBall(texture, (float)(0.27*2*VIRTUAL_WIDTH), 
-				(float)(0.5*VIRTUAL_HEIGHT), -1.0f);
-		b.setVelocity(new Vector2(0, 0));
-
-		texture = getNextTexture();
-		b = level.spawnBall(texture, (float)(0.27*3*VIRTUAL_WIDTH), 
-				(float)(0.5*VIRTUAL_HEIGHT), -1.0f);
-		b.setVelocity(new Vector2(vel*-1, 0));
-
-		texture = getNextTexture();
-		b = level.spawnBall(texture, (float)(0.27*2*VIRTUAL_WIDTH), 
-				(float)(0.75*VIRTUAL_HEIGHT), -1.0f);
-		b.setVelocity(new Vector2(0, vel*-1));
-
-		texture = getNextTexture();
-		b = level.spawnBall(texture, (float)(0.27*2*VIRTUAL_WIDTH), 
-				(float)(0.25*VIRTUAL_HEIGHT), -1.0f);
-		b.setVelocity(new Vector2(0, vel));
-	}
-
-	public void spawnSimpleGridLevel() {
-		// for now: current level, spawn balls in grid to limit
-		for (int i = 1; i <= 4; i++) {
-			for (int j = 1; j <= 3; j++) {
-				Texture texture = getNextTexture();
-				level.spawnBall(texture, (float)(0.27*j*VIRTUAL_WIDTH), 
-						(float)(0.15*i*VIRTUAL_HEIGHT), -1.0f);
-			}
-		}
 	}
 
 	/** Called when the view should be rendered.
@@ -104,6 +61,9 @@ public class WorldView implements GestureListener {
 	 * @param delta the time in seconds since the last render. 
 	 * */
 	public void render(float delta) {
+		// debug fps log
+//		fpsLogger.log();
+		
 		// clear the screen with a dark blue color. The
 		// arguments to glClearColor are the red, green
 		// blue and alpha component in the range [0,1]
@@ -130,13 +90,6 @@ public class WorldView implements GestureListener {
 		}
 	}
 
-	public Texture getNextTexture() {
-		currText++;
-		if (currText >= Assets.textures.size) 
-			currText = 0;
-		return Assets.textures.get(currText);
-	}
-
 	public void drawBalls() {
 		Iterator<Ball> iter = level.getBalls().iterator();
 		while (iter.hasNext()) {
@@ -150,6 +103,9 @@ public class WorldView implements GestureListener {
 		font.dispose();
 	}
 
+	Vector3 touchPos = new Vector3();
+	Vector2 ballPos = new Vector2();
+	
 	@Override
 	public boolean touchDown(float x, float y, int pointer, int button) {
 		return false;
@@ -158,8 +114,8 @@ public class WorldView implements GestureListener {
 	@Override
 	public boolean tap(float x, float y, int count, int button) {
 		for (Ball b : level.getBalls()) {
-			Vector2 ballPos = new Vector2(b.x, b.y);
-			Vector3 touchPos = new Vector3(x, y, 0);
+			ballPos.set(b.x, b.y);
+			touchPos.set(x, y, 0);
 			camera.unproject(touchPos);
 			if (b.bounds().radius >= Math.abs(ballPos.dst(new Vector2(touchPos.x, touchPos.y))))  {
 				Gdx.app.log("tap", "ball tag: " + b.tag);
@@ -183,8 +139,6 @@ public class WorldView implements GestureListener {
 		draggedBall = null;
 		return false;
 	}
-
-	Vector3 touchPos = new Vector3();
 
 	/** another temporary vector **/
 	Vector2 target = new Vector2();
