@@ -46,6 +46,7 @@ Bonus object:
 8. Small balls
 9. Slow timer
 10. No points deduction
+11. Vacuum Cleaner (Touch an empty spot to suck in the balls)
 
 Round rules:
 1. Combo enabled

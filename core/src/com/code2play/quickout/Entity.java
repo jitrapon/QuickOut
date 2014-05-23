@@ -10,6 +10,7 @@ import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.Filter;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.utils.Array;
 
 /**
  * All game objects are entities. Different behaviors are specified by extending this class 
@@ -49,8 +50,13 @@ public class Entity {
 	/** This game object's texture to be drawn */
 	public Texture texture;
 	
+	/**
+	 * This game object's textures list
+	 */
+	public Array<Texture> textures;
+	
 	// Holds this game object's bounding rectangle in world space.
-	private Circle bounds;
+	protected Circle bounds;
 	
 	/** holds the current velocity magnitude in x,y direction of the object */
 	public Vector2 velocity;				
@@ -62,16 +68,18 @@ public class Entity {
 	public int collisionCount = 0;
 	
 	/** Box2D Physical Body */
-	private BodyDef bodyDef;
+	protected BodyDef bodyDef;
 	
 	/** Box2D Body */
 	protected Body body;
 	
 	/** Box2D Fixture **/
-	private FixtureDef fixtureDef;
+	protected FixtureDef fixtureDef;
 	
 	/** Box2D Shape **/
-	private CircleShape circle;
+	protected CircleShape circle;
+
+	
 	
 	public static final float WORLD_TO_BOX = 1/75f;		
 	public static final float BOX_TO_WORLD = 75.0f;		
@@ -93,6 +101,14 @@ public class Entity {
 		texture = text;
 	}
 	
+	public Entity(Array<Texture> text, float radius) {
+		this();
+		bounds.radius = radius;
+		width = radius;
+		height = radius;
+		textures = text;
+	}
+	
 	public Body getBody() {
 		return body;
 	}
@@ -106,49 +122,12 @@ public class Entity {
 	}
 	
 	/**
-	 * Attach the Box2D physics body to this entity
+	 * Override this to attach the Box2D physics body to this entity
 	 * @param x Initial x position
 	 * @param y Initial y position
 	 */
 	public void attachPhysicsBody(short categoryBits, float radius, float x, float y, float density, float linearDamping, 
 			float friction, float restitution) {
-		
-		// First we create a body definition
-		bodyDef = new BodyDef();
-		
-		// We set our body to dynamic, for something like ground which doesn't move we would set it to StaticBody
-		bodyDef.type = BodyType.DynamicBody;
-		
-		// Set our body's starting position in the world
-		bodyDef.position.set(x * WORLD_TO_BOX, y * WORLD_TO_BOX);
-		this.x = x;
-		this.y = y;
-		bounds.x = x;
-		bounds.y = y;
-		
-		// Create our body in the world using our body definition
-		body = level.getPhysicsWorld().createBody(bodyDef);
-		body.setLinearDamping(linearDamping);
-		
-		// Create a circle shape and set its radius
-		circle = new CircleShape();
-		circle.setRadius(radius * WORLD_TO_BOX);
-
-		// Create a fixture definition to apply our shape to
-		fixtureDef = new FixtureDef();
-		fixtureDef.shape = circle;
-		fixtureDef.density = density; 
-		fixtureDef.friction = friction;
-		fixtureDef.restitution = restitution; 
-		
-		// Default fixture category bits for collision filtering in-game
-		fixtureDef.filter.categoryBits = categoryBits;
-		
-		body.createFixture(fixtureDef);
-		
-		// Remember to dispose of any shapes after you're done with them!
-		// BodyDef and FixtureDef don't need disposing, but shapes do.
-		circle.dispose();
 	}
 	
 	public Vector2 getPosition() {
@@ -177,11 +156,6 @@ public class Entity {
 	/** Switches this game object into a new state and resets {@link #stateTime}.
 	 * @param state the new state. */
 	public void setState(int state) {
-		// do nothing if current state equals state
-		if (state != this.state) {
-			this.state = state;
-			stateTime = 0.0f;
-		}
 	}
 	
 	public Vector2 getVelocity() {

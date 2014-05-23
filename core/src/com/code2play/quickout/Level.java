@@ -9,8 +9,12 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
+import com.badlogic.gdx.physics.box2d.Contact;
+import com.badlogic.gdx.physics.box2d.ContactImpulse;
+import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.EdgeShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
@@ -26,6 +30,7 @@ public class Level {
 
 	/* Box2D World constants */
 	private World world;
+	private BoundaryListener bListener;
 	private Vector2 gravity = new Vector2();
 	private float timeStep = 1/45f;
 	private int velocityIterations = 6;
@@ -39,10 +44,19 @@ public class Level {
 	private static final int VIRTUAL_WIDTH = Gdx.graphics.getWidth();			// the screen width in world's coordinate
 	private static final int VIRTUAL_HEIGHT = Gdx.graphics.getHeight();			// the screen height in world's coordinate
 	private static final float MAX_SPEED = 20.0f;								// the maximum speed of any ball
+	private static final float RESPAWN_TIME = 0.15f;							// time in seconds before the next respawn
 
+	/* Some variables */
+	private float time = 0.0f;													// keep tracks of current time in seconds (for next respawn)
 	private Array<Ball> balls;													// contains the list of balls onscreen at this level
 	private Body groundBody;													// used as anchor for mousejoint only
+
+	/* Ball Type Constants */ 
 	private int currText = -1;													// the current texture number so far
+	public static final int BLUE = 0;
+	public static final int GREEN = 1;
+	public static final int RED = 2;
+	public static final int YELLOW = 3;
 
 	public enum EntityType {
 		WALL((short)1), BALL((short)2), SPECIAL((short)4);
@@ -62,7 +76,8 @@ public class Level {
 		// construct the world object. this object contains all physics objects/bodies and simulates
 		// interactions between them. 
 		world = new World(gravity, true);
-
+		bListener = new BoundaryListener();
+		world.setContactListener(bListener);
 		balls = new Array<Ball>(MAX_NUM_OBJECT_ONSCREEN);
 	}
 
@@ -89,8 +104,13 @@ public class Level {
 	public Texture getNextTexture() {
 		currText++;
 		if (currText >= Assets.textures.size) 
-			currText = 0;
+			currText = BLUE;
 		return Assets.textures.get(currText);
+	}
+
+	public Texture getTexture(int texture) {
+		if (texture >= Assets.textures.size)  return null;
+		else  return Assets.textures.get(texture);
 	}
 
 	/**
@@ -104,27 +124,27 @@ public class Level {
 		float vel = 3.5f;
 		Texture texture = getNextTexture();
 		Ball b = spawnBall(texture, (float)(0.27*1*VIRTUAL_WIDTH), 
-				(float)(0.5*VIRTUAL_HEIGHT), -1.0f);
+				(float)(0.5*VIRTUAL_HEIGHT), -1.0f, currText);
 		b.setVelocity(new Vector2(vel, 0));
 
 		texture = getNextTexture();
 		b = spawnBall(texture, (float)(0.27*2*VIRTUAL_WIDTH), 
-				(float)(0.5*VIRTUAL_HEIGHT), -1.0f);
+				(float)(0.5*VIRTUAL_HEIGHT), -1.0f, currText);
 		b.setVelocity(new Vector2(0, 0));
 
 		texture = getNextTexture();
 		b = spawnBall(texture, (float)(0.27*3*VIRTUAL_WIDTH), 
-				(float)(0.5*VIRTUAL_HEIGHT), -1.0f);
+				(float)(0.5*VIRTUAL_HEIGHT), -1.0f, currText);
 		b.setVelocity(new Vector2(vel*-1, 0));
 
 		texture = getNextTexture();
 		b = spawnBall(texture, (float)(0.27*2*VIRTUAL_WIDTH), 
-				(float)(0.75*VIRTUAL_HEIGHT), -1.0f);
+				(float)(0.75*VIRTUAL_HEIGHT), -1.0f, currText);
 		b.setVelocity(new Vector2(0, vel*-1));
 
 		texture = getNextTexture();
 		b = spawnBall(texture, (float)(0.27*2*VIRTUAL_WIDTH), 
-				(float)(0.25*VIRTUAL_HEIGHT), -1.0f);
+				(float)(0.25*VIRTUAL_HEIGHT), -1.0f, currText);
 		b.setVelocity(new Vector2(0, vel));
 	}
 
@@ -165,22 +185,22 @@ public class Level {
 	 * @param posY World's y coordinate
 	 * @param lifeTime This ball's lifetime in seconds before it disappears
 	 */
-	public Ball spawnBall(Texture t, float posX, float posY, float lifeTime) {
-		Ball ball = new Ball(t, t.getHeight()/2f, balls.size + 1);
+	public Ball spawnBall(Texture t, float posX, float posY, float lifeTime, int tag) {
+		Ball ball = new Ball(t, t.getHeight()/2f, tag);
 		ball.setWorld(this);
 		ball.attachPhysicsBody(EntityType.BALL.categoryBits, ball.radius, posX, posY, 1.0f, 1.0f, 1.0f, 1.0f);
 		addBall(ball);
 		return ball;
 	}
-	
+
 	/**
 	 * Spawn a ball on a random world coordinate within the camera
 	 * @param t The ball's texture
 	 * @param lifeTime This ball's lifetime in seconds before it disappears
 	 * @return
 	 */
-	public Ball spawnBall(Texture t, float lifeTime) {
-		Ball ball = new Ball(t, t.getHeight()/2f, balls.size + 1);
+	public Ball spawnBall(Texture t, float lifeTime, int tag) {
+		Ball ball = new Ball(t, t.getHeight()/2f, tag);
 		ball.setWorld(this);
 		float posX = getRandomCoordinate(ball.radius, VIRTUAL_WIDTH-ball.radius);
 		float posY = getRandomCoordinate(ball.radius, VIRTUAL_HEIGHT-ball.radius);
@@ -189,6 +209,9 @@ public class Level {
 		return ball;
 	}
 
+	/**
+	 * Create a joint-anchor ground body for mousejoint events
+	 */
 	public void createGroundBody() {
 		PolygonShape groundPoly = new PolygonShape();
 		groundPoly.setAsBox(50, 1);
@@ -205,6 +228,10 @@ public class Level {
 		groundPoly.dispose();
 	}
 
+	/**
+	 * Create a boundary as well as boundary listener to remove entities that
+	 * travel beyond the viewable area
+	 */
 	public void createWallBoundary() {
 		float width = VIRTUAL_WIDTH * WORLD_TO_BOX;
 		float height = VIRTUAL_HEIGHT * WORLD_TO_BOX;
@@ -219,28 +246,44 @@ public class Level {
 		Body wallBody = world.createBody(wallDef);
 		EdgeShape borderShape = new EdgeShape();
 		FixtureDef fixtureDef = new FixtureDef(); 
+		FixtureDef fixtureDefSensor = new FixtureDef();
 
 		// Create fixtures for the four borders (the border shape is re-used)
 		borderShape.set(lowerLeftCorner, lowerRightCorner);
 		fixtureDef.shape = borderShape;
 		fixtureDef.filter.categoryBits = EntityType.WALL.categoryBits;
 		fixtureDef.density = 0;
+		fixtureDefSensor.shape = borderShape;
+		fixtureDefSensor.filter.categoryBits = EntityType.BALL.categoryBits;			// this is a bit of a hack, we use BALL category so that
+		// the ball still registers callback 
+		fixtureDefSensor.density = 0;
+		fixtureDefSensor.isSensor = true;
 		wallBody.createFixture(fixtureDef);
+		wallBody.createFixture(fixtureDefSensor);
 
 		borderShape.set(lowerRightCorner, upperRightCorner);
 		fixtureDef.shape = borderShape;
+		fixtureDefSensor.shape = borderShape;
 		wallBody.createFixture(fixtureDef);
+		wallBody.createFixture(fixtureDefSensor);
 
 		borderShape.set(upperRightCorner, upperLeftCorner);
 		fixtureDef.shape = borderShape;
+		fixtureDefSensor.shape = borderShape;
 		wallBody.createFixture(fixtureDef);
+		wallBody.createFixture(fixtureDefSensor);
 
 		borderShape.set(upperLeftCorner, lowerLeftCorner);
 		fixtureDef.shape = borderShape;
+		fixtureDefSensor.shape = borderShape;
 		wallBody.createFixture(fixtureDef);
+		wallBody.createFixture(fixtureDefSensor);
 
 		borderShape.dispose();
+
+		wallBody.setUserData("wall");
 	}
+
 
 	public Body getGroundBody() {
 		return groundBody;
@@ -258,7 +301,6 @@ public class Level {
 		return BOX_TO_WORLD;
 	}
 
-	float time = 0.0f;
 	Random random = new Random();
 	Texture texture = null;
 	Ball b = null;
@@ -275,28 +317,39 @@ public class Level {
 		while (iter.hasNext()) {
 			Ball ball = iter.next();
 			ball.update(delta);
-			
-			// remove entities that are flagged as TAPPED 
-			// so they won't be rendered
-			if (ball.state == ball.TAPPED) {
+
+			// remove objects that are flagged as removed
+			if (ball.removed) {
 				iter.remove();
-				time = 0.0f;	// reset spawn timer
-//				Gdx.app.log("Balls count", "Number of balls is " + balls.size);
+				time = 0.0f;					// reset spawn timer
+				validateAction(ball);
 			}
 		}
 
 		//TODO spawn entities if current num is less than max value
 		if (balls.size < MAX_NUM_OBJECT_ONSCREEN) {
-			if (time > 0.15f) {
+			if (time > RESPAWN_TIME) {
 				texture = getNextTexture();
-				b = spawnBall(texture, -1.0f);
+				b = spawnBall(texture, -1.0f, currText);
 				b.setVelocity( new Vector2( (random.nextFloat()*MAX_SPEED) - 5.0f, (random.nextFloat()*MAX_SPEED) - 5.0f) );
-				time = 0.0f;
+				time = 0.0f;					// reset spawn timer
 			}
 		}
 		time += delta;
 	}
-	
+
+	/**
+	 * TODO
+	 * Check to validate if the current move done to the ball fits the condition given
+	 * Update the score after
+	 * @param ball 
+	 * @return true if the action is correct, false otherwise
+	 */
+	private boolean validateAction(Ball ball) {
+		Gdx.app.log("ACTION", "Move type: " + ball.state + " on " + ball.getType());
+		return true;
+	}
+
 	/**
 	 * Call this method to return a random location within the screen
 	 * Usually for spawning purposes
@@ -351,4 +404,28 @@ public class Level {
 			balls.get(i).inCollision = false;
 		}
 	}
+
+	class BoundaryListener implements ContactListener {
+
+		@Override
+		public void beginContact(Contact contact) {
+			//			if (contact.getFixtureA().getBody().getUserData() != null) 
+			//				Gdx.app.log("Begin Collision", "A Body: " + contact.getFixtureA().getBody().getUserData().getClass().getName());
+			//			if (contact.getFixtureB().getBody().getUserData() != null) 
+			//				Gdx.app.log("Begin Collision", "B Body: " + contact.getFixtureB().getBody().getUserData().getClass().getName());
+		}
+
+		@Override
+		public void endContact(Contact contact) {
+		}
+
+		@Override
+		public void preSolve(Contact contact, Manifold oldManifold) {
+		}
+
+		@Override
+		public void postSolve(Contact contact, ContactImpulse impulse) {
+		}
+
+	};
 }

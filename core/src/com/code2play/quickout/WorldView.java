@@ -36,6 +36,7 @@ public class WorldView implements GestureListener {
 	private Ball draggedBall;					// specifies which ball is currently being dragged
 
 	GestureDetector gestureDetector;
+	private float longPressDuration = 1.0f;
 
 	/** our mouse joint **/
 	protected MouseJoint mouseJoint = null;
@@ -53,7 +54,7 @@ public class WorldView implements GestureListener {
 		level.debugInit();
 		//		level.init();
 
-		gestureDetector = new GestureDetector(20, 0.5f, 2, 0.15f, this);
+		gestureDetector = new GestureDetector(20, 0.5f, longPressDuration, 0.15f, this);
 		Gdx.input.setInputProcessor(gestureDetector);
 	}
 
@@ -131,12 +132,12 @@ public class WorldView implements GestureListener {
 
 	@Override
 	public boolean tap(float x, float y, int count, int button) {
+//		Gdx.app.log("Tap", x + ", " + y);
 		for (Ball b : level.getBalls()) {
 			ballPos.set(b.x, b.y);
 			touchPos.set(x, y, 0);
 			camera.unproject(touchPos);
-			if (b.bounds().radius >= Math.abs(ballPos.dst(new Vector2(touchPos.x, touchPos.y))))  {
-				Gdx.app.log("tap", "ball tag: " + b.tag);
+			if (b.radius >= Math.abs(ballPos.dst(new Vector2(touchPos.x, touchPos.y))))  {
 				b.setState(Ball.TAPPED);
 			}
 		}
@@ -145,8 +146,16 @@ public class WorldView implements GestureListener {
 
 	@Override
 	public boolean longPress(float x, float y) {
-		Gdx.app.log("longPress", x + ", " + y);
-		return false;
+//		Gdx.app.log("Long Press", x + ", " + y);
+		for (Ball b : level.getBalls()) {
+			ballPos.set(b.x, b.y);
+			touchPos.set(x, y, 0);
+			camera.unproject(touchPos);
+			if (b.radius >= Math.abs(ballPos.dst(new Vector2(touchPos.x, touchPos.y))))  {
+				b.setState(Ball.LONG_TAPPED);
+			}
+		}
+		return true;
 	}
 
 	@Override
