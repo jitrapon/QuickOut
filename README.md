@@ -36,17 +36,17 @@ Pattern matching challenge example :
 
 Bonus object:
 
-1. x2 score for x seconds (Golden touch)
-2. slow change rate
-3. slow disappearance rate
-4. change every object to current match for x seconds
-5. explode all objects 
-6. helper AI to help for every correct action you make, and there is another object to match, the AI helper will do the same to one object.
-7. Fast moving balls
-8. Small balls
-9. Slow timer
-10. No points deduction
-11. Vacuum Cleaner (Touch an empty spot to suck in the balls)
+0. Item description (Item name)
+1. x2 score for x seconds, 2 makes x3, 3 makes x4 (Golden Touch) 
+2. slow change rate for x seconds, 2 makes 2 times slower, 3 makes 3 times slower (Take your time)
+3. slow disappearance rate or any level-specific bounce effects (Nullifier)
+4. change every object to current match for x seconds (Matchmaker)
+5. explode all objects  (Detonator)
+6. helper AI to help for every correct action you make, and there is another object to match, the AI helper will do the same to one object. (Cheater)
+7. Fast moving balls (Frenzy)
+8. Small balls (Minimizer)
+9. Slow timer (Slow Time)
+10. No points deduction (No Penalty)
 
 Round rules:
 1. Combo enabled
@@ -56,10 +56,12 @@ Round rules:
 5. Bomb Detonator (Drag or long-press or tap 50 times)
 6. x2 points reduction
 7. No boundary
+8. Temporary greyscale
 
 Business model
 1. Score sharing. Challenge players on social media.
 2. Energy game play time.
+3. Buy extra slot to hold special items (max 3)
 
 
 
