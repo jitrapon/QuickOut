@@ -15,6 +15,7 @@ public class GameScreen implements Screen {
 		game = g;
 		level = new Level();
 		worldView = new WorldView(level);
+		level.setWorldRenderer(worldView);
 	}
 
 	@Override

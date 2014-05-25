@@ -27,6 +27,7 @@ public class Ball extends Entity {
 	public static final int LONG_TAPPED = 1;			// indicates the ball is just being long-tapped
 	public static final int DRAGGED = 2;				// indicates the ball is just being dragged
 	public static final int FLINGED = 3;				// indicates the ball is just being let go of drag state
+	public static final int COLLIDED = 4;				// indicates the ball is just collided with another ball
 
 	public Ball(Texture texture, float radius, int tag) {
 		super(texture, radius);
@@ -200,6 +201,14 @@ public class Ball extends Entity {
 				dispose();
 				return;
 			}
+		
+			break;
+			
+		case COLLIDED:
+//			removed = true;
+//			dispose();
+//			return;
+			break;
 			
 			/* default state is INACTIVE */
 		default:

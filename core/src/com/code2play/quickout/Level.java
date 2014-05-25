@@ -28,6 +28,9 @@ import com.badlogic.gdx.utils.Array;
  */
 public class Level {
 
+	/* Reference to WorldView */
+	private WorldView worldView;
+
 	/* Box2D World constants */
 	private World world;
 	private BoundaryListener bListener;
@@ -45,6 +48,7 @@ public class Level {
 	private static final int VIRTUAL_HEIGHT = Gdx.graphics.getHeight();			// the screen height in world's coordinate
 	private static final float MAX_SPEED = 20.0f;								// the maximum speed of any ball
 	private static final float RESPAWN_TIME = 0.15f;							// time in seconds before the next respawn
+	public boolean spawnMoreBalls = true;										// indicates whether to continue spawning more balls
 
 	/* Some variables */
 	private float time = 0.0f;													// keep tracks of current time in seconds (for next respawn)
@@ -72,6 +76,9 @@ public class Level {
 		}
 	}
 
+	/**
+	 * Default ctor
+	 */
 	public Level() {
 		// construct the world object. this object contains all physics objects/bodies and simulates
 		// interactions between them. 
@@ -79,6 +86,18 @@ public class Level {
 		bListener = new BoundaryListener();
 		world.setContactListener(bListener);
 		balls = new Array<Ball>(MAX_NUM_OBJECT_ONSCREEN);
+	}
+
+	/**
+	 * Set the renderer after ctor
+	 * @param viewRenderer
+	 */
+	public void setWorldRenderer(WorldView viewRenderer) {
+		worldView = viewRenderer;
+	}
+
+	public WorldView getWorldRenderer() {
+		return worldView;
 	}
 
 	public Array<Ball> getBalls() {
@@ -154,28 +173,6 @@ public class Level {
 	public void debugInit() {
 		createGroundBody();
 		createWallBoundary();
-		Ball b = null;
-		Random random = new Random();
-
-		// for now: current level, spawn balls in grid to limit
-		//		for (int i = 1; i <= 4; i++) {
-		//			for (int j = 1; j <= 3; j++) {
-		//				Texture texture = getNextTexture();
-		//				b = spawnBall(texture, (float)(0.27*j*VIRTUAL_WIDTH), 
-		//						(float)(0.15*i*VIRTUAL_HEIGHT), -1.0f);
-		//				b.setVelocity( new Vector2( (random.nextFloat()*10.0f) - 5.0f, (random.nextFloat()*10.0f) - 5.0f) );
-		//			}
-		//		}
-
-		// spawn all balls at random locations with random initial velocities
-		//		Texture texture = null;
-		//		for (int i = 0; i < MAX_NUM_OBJECT_ONSCREEN; i++) {
-		//			texture = getNextTexture();
-		//			b = spawnBall(texture, (float)(VIRTUAL_WIDTH/2.0f), 
-		//					(float)(VIRTUAL_HEIGHT/2.0f), -1.0f);
-		//			b.setVelocity( new Vector2( (random.nextFloat()*MAX_SPEED) - 5.0f, (random.nextFloat()*MAX_SPEED) - 5.0f) );
-		//		}
-
 	}
 
 	/**
@@ -281,7 +278,7 @@ public class Level {
 
 		borderShape.dispose();
 
-		wallBody.setUserData("wall");
+		wallBody.setUserData("wall");				// TODO assign the boundary an instance of Entity
 	}
 
 
@@ -312,11 +309,17 @@ public class Level {
 		world.step(timeStep, velocityIterations, positionIterations);
 
 		// update all the entities accordingly
-		//TODO remove balls that are taken away
+		// remove balls that are taken away
 		Iterator<Ball> iter = balls.iterator();
 		while (iter.hasNext()) {
 			Ball ball = iter.next();
 			ball.update(delta);
+
+			//TODO set mousejoint in WorldView to null if this ball 
+			// is a dragged ball
+			if (ball == worldView.draggedBall && ball.inCollision) {
+				Gdx.app.log("DRAGGED COLLISION", "Dragged ball " + ball.getType() + " is in collision!");
+			}
 
 			// remove objects that are flagged as removed
 			if (ball.removed) {
@@ -326,8 +329,8 @@ public class Level {
 			}
 		}
 
-		//TODO spawn entities if current num is less than max value
-		if (balls.size < MAX_NUM_OBJECT_ONSCREEN) {
+		// spawn entities if current num is less than max value
+		if (balls.size < MAX_NUM_OBJECT_ONSCREEN && spawnMoreBalls) {
 			if (time > RESPAWN_TIME) {
 				texture = getNextTexture();
 				b = spawnBall(texture, -1.0f, currText);
@@ -409,14 +412,35 @@ public class Level {
 
 		@Override
 		public void beginContact(Contact contact) {
-			//			if (contact.getFixtureA().getBody().getUserData() != null) 
-			//				Gdx.app.log("Begin Collision", "A Body: " + contact.getFixtureA().getBody().getUserData().getClass().getName());
-			//			if (contact.getFixtureB().getBody().getUserData() != null) 
-			//				Gdx.app.log("Begin Collision", "B Body: " + contact.getFixtureB().getBody().getUserData().getClass().getName());
+			// make sure that this collision is that of two balls
+			if (contact.getFixtureA().getBody().getUserData() instanceof Ball 
+					&& contact.getFixtureB().getBody().getUserData() instanceof Ball) {
+				Ball ballA = (Ball) contact.getFixtureA().getBody().getUserData();
+				Ball ballB = (Ball) contact.getFixtureB().getBody().getUserData();
+//				Gdx.app.log("COLLISION", "Ball " + ballA.getType() + " is colliding with " + ballB.getType());
+				ballA.inCollision = true;
+				ballB.inCollision = true;
+			}
 		}
 
 		@Override
 		public void endContact(Contact contact) {
+			// make sure that this collision is that of two balls
+			
+			Ball temp = null;
+			if (contact.getFixtureA() != null) {
+				if (contact.getFixtureA().getBody().getUserData() instanceof Ball) {
+					temp = (Ball) contact.getFixtureA().getBody().getUserData();
+					temp.inCollision = false;
+				} 
+			}
+			
+			if (contact.getFixtureB() != null) {
+				if (contact.getFixtureB().getBody().getUserData() instanceof Ball) {
+					temp = (Ball) contact.getFixtureB().getBody().getUserData();
+					temp.inCollision = false;
+				} 
+			}
 		}
 
 		@Override

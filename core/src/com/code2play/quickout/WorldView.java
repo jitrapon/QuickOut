@@ -33,7 +33,7 @@ public class WorldView implements GestureListener {
 	private BitmapFont font;
 	private FPSLogger fpsLogger;
 
-	private Ball draggedBall;					// specifies which ball is currently being dragged
+	public Ball draggedBall;					// specifies which ball is currently being dragged
 
 	GestureDetector gestureDetector;
 	private float longPressDuration = 1.0f;
@@ -51,8 +51,8 @@ public class WorldView implements GestureListener {
 		batch = new SpriteBatch();
 		font = new BitmapFont();
 
-		level.debugInit();
-		//		level.init();
+//		level.debugInit();
+		level.init();
 
 		gestureDetector = new GestureDetector(20, 0.5f, longPressDuration, 0.15f, this);
 		Gdx.input.setInputProcessor(gestureDetector);
@@ -160,10 +160,7 @@ public class WorldView implements GestureListener {
 
 	@Override
 	public boolean fling(float velocityX, float velocityY, int button) {
-		if (draggedBall != null) {
-			draggedBall.setState(Ball.FLINGED);
-		}
-		draggedBall = null;
+//		Gdx.app.log("FLING", "Flinging with velocity " + velocityX + " " + velocityY);
 		return false;
 	}
 
@@ -217,8 +214,12 @@ public class WorldView implements GestureListener {
 
 	@Override
 	public boolean panStop(float x, float y, int pointer, int button) {
+//		Gdx.app.log("PAN STOP", "Panning stop at location " + x + " " + y);
+		//TODO check velocity
 		if (draggedBall != null) {
-			draggedBall.setState(Ball.INACTIVE);
+			draggedBall.setState(Ball.FLINGED);
+			// if too slow -> set state to Ball.INACTIVE
+			draggedBall = null;
 		}
 
 		// if a mouse joint exists we simply destroy it
