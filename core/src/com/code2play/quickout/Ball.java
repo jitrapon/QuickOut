@@ -21,6 +21,7 @@ public class Ball extends Entity {
 	public boolean physicsEnabled = true;
 	public String type;									// representation of the ball's type
 	public int tag;
+	public boolean hasCollidedCorrectly = false;		// whether of not the ball is correctly collided of the specified type
 
 	/* ALL BALL STATE (default idle state */
 	public static final int TAPPED = 0;					// indicates the ball is just being tapped 

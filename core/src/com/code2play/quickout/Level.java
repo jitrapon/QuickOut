@@ -33,7 +33,7 @@ public class Level {
 
 	/* Box2D World constants */
 	private World world;
-	private BoundaryListener bListener;
+	private CollisionListener bListener;
 	private Vector2 gravity = new Vector2();
 	private float timeStep = 1/45f;
 	private int velocityIterations = 6;
@@ -82,8 +82,8 @@ public class Level {
 	public Level() {
 		// construct the world object. this object contains all physics objects/bodies and simulates
 		// interactions between them. 
-		world = new World(gravity, true);
-		bListener = new BoundaryListener();
+		world = new World(gravity, false);
+		bListener = new CollisionListener();
 		world.setContactListener(bListener);
 		balls = new Array<Ball>(MAX_NUM_OBJECT_ONSCREEN);
 	}
@@ -243,38 +243,38 @@ public class Level {
 		Body wallBody = world.createBody(wallDef);
 		EdgeShape borderShape = new EdgeShape();
 		FixtureDef fixtureDef = new FixtureDef(); 
-		FixtureDef fixtureDefSensor = new FixtureDef();
+//		FixtureDef fixtureDefSensor = new FixtureDef();
 
 		// Create fixtures for the four borders (the border shape is re-used)
 		borderShape.set(lowerLeftCorner, lowerRightCorner);
 		fixtureDef.shape = borderShape;
 		fixtureDef.filter.categoryBits = EntityType.WALL.categoryBits;
 		fixtureDef.density = 0;
-		fixtureDefSensor.shape = borderShape;
-		fixtureDefSensor.filter.categoryBits = EntityType.BALL.categoryBits;			// this is a bit of a hack, we use BALL category so that
+//		fixtureDefSensor.shape = borderShape;
+//		fixtureDefSensor.filter.categoryBits = EntityType.BALL.categoryBits;			// this is a bit of a hack, we use BALL category so that
 		// the ball still registers callback 
-		fixtureDefSensor.density = 0;
-		fixtureDefSensor.isSensor = true;
+//		fixtureDefSensor.density = 0;
+//		fixtureDefSensor.isSensor = true;
 		wallBody.createFixture(fixtureDef);
-		wallBody.createFixture(fixtureDefSensor);
+//		wallBody.createFixture(fixtureDefSensor);
 
 		borderShape.set(lowerRightCorner, upperRightCorner);
 		fixtureDef.shape = borderShape;
-		fixtureDefSensor.shape = borderShape;
+//		fixtureDefSensor.shape = borderShape;
 		wallBody.createFixture(fixtureDef);
-		wallBody.createFixture(fixtureDefSensor);
+//		wallBody.createFixture(fixtureDefSensor);
 
 		borderShape.set(upperRightCorner, upperLeftCorner);
 		fixtureDef.shape = borderShape;
-		fixtureDefSensor.shape = borderShape;
+//		fixtureDefSensor.shape = borderShape;
 		wallBody.createFixture(fixtureDef);
-		wallBody.createFixture(fixtureDefSensor);
+//		wallBody.createFixture(fixtureDefSensor);
 
 		borderShape.set(upperLeftCorner, lowerLeftCorner);
 		fixtureDef.shape = borderShape;
-		fixtureDefSensor.shape = borderShape;
+//		fixtureDefSensor.shape = borderShape;
 		wallBody.createFixture(fixtureDef);
-		wallBody.createFixture(fixtureDefSensor);
+//		wallBody.createFixture(fixtureDefSensor);
 
 		borderShape.dispose();
 
@@ -317,8 +317,8 @@ public class Level {
 
 			//TODO set mousejoint in WorldView to null if this ball 
 			// is a dragged ball
-			if (ball == worldView.draggedBall && ball.inCollision) {
-				Gdx.app.log("DRAGGED COLLISION", "Dragged ball " + ball.getType() + " is in collision!");
+			if (ball.state == Ball.DRAGGED && ball.hasCollidedCorrectly) {
+				Gdx.app.log("DRAGGED COLLISION", "Dragged ball " + ball.getType() + " has collided correctly!");
 			}
 
 			// remove objects that are flagged as removed
@@ -364,51 +364,10 @@ public class Level {
 	}
 
 	/**
-	 * @deprecated
+	 * Listener callbacks for ball collisions
+	 * @author Jitrapon
 	 */
-	Vector2 lastVel = new Vector2();
-	private void checkBallsCollision() {
-
-		//TODO: figure out the balls that are simultaneously colliding
-		for (int i = 0; i < balls.size; i++) {
-			for (int j = i+1; j < balls.size; j++) {
-				balls.get(i).intersects(balls.get(j));
-			}
-		}
-
-
-		for (int i = 0; i < balls.size; i++) {
-			for (int j = i+1; j < balls.size; j++) {
-				//TODO change to ball.collideWith(otherBall)
-				if ( balls.get(i).intersects(balls.get(j)) ) {
-					lastVel.x = balls.get(i).velocity.x;
-					lastVel.y = balls.get(i).velocity.y;
-					Gdx.app.log("velocity", "Ball " + i + " previous velocity x: " + balls.get(i).velocity.x);
-					Gdx.app.log("velocity", "Ball " + j + " previous velocity x: " + balls.get(j).velocity.x);
-					balls.get(i).resolveCollision(balls.get(j));
-					Gdx.app.log("velocity", "Ball " + i + " new velocity x: " + balls.get(i).velocity.x);
-					Gdx.app.log("velocity", "Ball " + j + " new velocity x: " + balls.get(j).velocity.x);
-				}
-
-				// if this ball is already in collision with other balls, we accumulate the velocity changes
-				if ( balls.get(i).collisionCount > 1 ) {
-					//					balls.get(i).setVelocity( lastVel.add(balls.get(i).velocity) );
-					Gdx.app.log("velocity", "Ball " + i + " accumulated velocity so far: " + balls.get(i).velocity.x);
-				}
-			}
-		}
-
-		//		balls.get(1).setVelocity(new Vector2());
-		//		Gdx.app.log("velocity", "ball 0 velocity x: " + balls.get(0).velocity.x);
-
-		for (int i = 0; i < balls.size; i++) {
-			Gdx.app.log("velocity", "Ball " + i + " final velocity: " + balls.get(i).velocity.x);
-			balls.get(i).collisionCount = 0;
-			balls.get(i).inCollision = false;
-		}
-	}
-
-	class BoundaryListener implements ContactListener {
+	class CollisionListener implements ContactListener {
 
 		@Override
 		public void beginContact(Contact contact) {
@@ -417,28 +376,38 @@ public class Level {
 					&& contact.getFixtureB().getBody().getUserData() instanceof Ball) {
 				Ball ballA = (Ball) contact.getFixtureA().getBody().getUserData();
 				Ball ballB = (Ball) contact.getFixtureB().getBody().getUserData();
-//				Gdx.app.log("COLLISION", "Ball " + ballA.getType() + " is colliding with " + ballB.getType());
-				ballA.inCollision = true;
-				ballB.inCollision = true;
+				if (ballA.tag == RED && ballB.tag == RED) {
+					ballA.hasCollidedCorrectly = true;
+					ballB.hasCollidedCorrectly = true;
+					Gdx.app.log("COLLISION", "Ball " + ballA.getType() + " is colliding with " + ballB.getType());
+					//TODO set removed true
+				}
+				ballA.startContact();
+				ballB.startContact();
 			}
 		}
 
 		@Override
 		public void endContact(Contact contact) {
 			// make sure that this collision is that of two balls
+			if (contact.getFixtureA() != null && contact.getFixtureB() != null) {
+				if (contact.getFixtureA().getBody().getUserData().equals("wall") ||
+						contact.getFixtureB().getBody().getUserData().equals("wall")) 
+					return;
+			}
 			
-			Ball temp = null;
+			Ball ball = null;
 			if (contact.getFixtureA() != null) {
 				if (contact.getFixtureA().getBody().getUserData() instanceof Ball) {
-					temp = (Ball) contact.getFixtureA().getBody().getUserData();
-					temp.inCollision = false;
+					ball = (Ball) contact.getFixtureA().getBody().getUserData();
+					ball.endContact();
 				} 
 			}
 			
 			if (contact.getFixtureB() != null) {
 				if (contact.getFixtureB().getBody().getUserData() instanceof Ball) {
-					temp = (Ball) contact.getFixtureB().getBody().getUserData();
-					temp.inCollision = false;
+					ball = (Ball) contact.getFixtureB().getBody().getUserData();
+					ball.endContact();
 				} 
 			}
 		}

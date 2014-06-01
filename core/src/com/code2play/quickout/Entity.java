@@ -44,18 +44,16 @@ public class Entity {
 	/** How long this game object has been in its current state (in seconds). */
 	public float stateTime;
 	
-	/** Will be true if this game object is in collision. */
-	public boolean inCollision;
+	/** The number of fixtures that this entity is in contact with */
+	public int numContacts;
 	
 	/** This game object's texture to be drawn */
 	public Texture texture;
 	
-	/**
-	 * This game object's textures list
-	 */
+	/** This game object's textures list */
 	public Array<Texture> textures;
 	
-	// Holds this game object's bounding rectangle in world space.
+	/** Holds this game object's bounding rectangle in world space */
 	protected Circle bounds;
 	
 	/** holds the current velocity magnitude in x,y direction of the object */
@@ -79,18 +77,16 @@ public class Entity {
 	/** Box2D Shape **/
 	protected CircleShape circle;
 
-	
-	
 	public static final float WORLD_TO_BOX = 1/75f;		
 	public static final float BOX_TO_WORLD = 75.0f;		
 	
 	public Entity() {
 		stateTime = 0.0f;
-		inCollision = false;
 		bounds = new Circle();
 		bounds.x = x;
 		bounds.y = y;
 		state = INACTIVE;
+		numContacts = 0;
 	}
 	
 	public Entity(Texture text, float radius) {
@@ -195,18 +191,17 @@ public class Entity {
 		bounds.y += stepY;
 	}
 	
-	/**
-	 * Returns true if this game object is in collision with another game object.
-	 */
-	public boolean intersects(Entity other) {
-		boolean collided = Intersector.overlaps(bounds, other.bounds);
-		if (collided) {
-			collisionCount++;
-			other.collisionCount++;
-			inCollision = true;
-			other.inCollision = true;
-		}
-		return collided;
+	public boolean inCollision() {
+		return numContacts > 0;
+	}
+	
+	public void startContact() {
+		numContacts++;
+	}
+	
+	public void endContact() {
+		if (numContacts == 0) return;
+		numContacts--;
 	}
 	
 	/** Updates this game object. Typically you would override this to create interesting behaviour.
