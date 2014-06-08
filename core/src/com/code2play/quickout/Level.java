@@ -5,6 +5,7 @@ import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
@@ -43,6 +44,7 @@ public class Level {
 	public static final float BOX_TO_WORLD = 75.0f;	
 
 	/* This level's constants */
+	private static final float BALL_RADIUS = 75.0f;
 	private static final int MAX_NUM_OBJECT_ONSCREEN = 17;						// maximum number of spawnable objects onscreen at this level
 	private static final int VIRTUAL_WIDTH = Gdx.graphics.getWidth();			// the screen width in world's coordinate
 	private static final int VIRTUAL_HEIGHT = Gdx.graphics.getHeight();			// the screen height in world's coordinate
@@ -156,8 +158,9 @@ public class Level {
 				(float)(0.5*VIRTUAL_HEIGHT), -1.0f, currText);
 		b.setVelocity(new Vector2(vel*-1, 0));
 
+		// SALLY!
 		texture = getNextTexture();
-		b = spawnBall(texture, (float)(0.27*2*VIRTUAL_WIDTH), 
+		b = spawnBall(Assets.animationList.first(), (float)(0.27*2*VIRTUAL_WIDTH), 
 				(float)(0.75*VIRTUAL_HEIGHT), -1.0f, currText);
 		b.setVelocity(new Vector2(0, vel*-1));
 
@@ -174,6 +177,24 @@ public class Level {
 		createGroundBody();
 		createWallBoundary();
 	}
+	
+	public Ball spawnBall(Array<Animation> animList, float posX, float posY, float lifeTime, int tag) {
+		Ball ball = new Ball(animList, BALL_RADIUS, tag);
+		ball.setWorld(this);
+		ball.attachPhysicsBody(EntityType.BALL.categoryBits, ball.radius, posX, posY, 1.0f, 1.0f, 1.0f, 1.0f);
+		addBall(ball);
+		return ball;
+	}
+	
+	public Ball spawnBall(Array<Animation> animList, float lifeTime, int tag) {
+		Ball ball = new Ball(animList, BALL_RADIUS, tag);
+		ball.setWorld(this);
+		float posX = getRandomCoordinate(ball.radius, VIRTUAL_WIDTH-ball.radius);
+		float posY = getRandomCoordinate(ball.radius, VIRTUAL_HEIGHT-ball.radius);
+		ball.attachPhysicsBody(EntityType.BALL.categoryBits, ball.radius, posX, posY, 1.0f, 1.0f, 1.0f, 1.0f);
+		addBall(ball);
+		return ball;
+	}
 
 	/**
 	 * Spawn a ball on a specified world coordinate
@@ -189,7 +210,7 @@ public class Level {
 		addBall(ball);
 		return ball;
 	}
-
+	
 	/**
 	 * Spawn a ball on a random world coordinate within the camera
 	 * @param t The ball's texture
@@ -315,17 +336,14 @@ public class Level {
 			Ball ball = iter.next();
 			ball.update(delta);
 
-			//TODO set mousejoint in WorldView to null if this ball 
-			// is a dragged ball
-			if (ball.state == Ball.DRAGGED && ball.hasCollidedCorrectly) {
-				Gdx.app.log("DRAGGED COLLISION", "Dragged ball " + ball.getType() + " has collided correctly!");
-			}
-
 			// remove objects that are flagged as removed
 			if (ball.removed) {
 				iter.remove();
 				time = 0.0f;					// reset spawn timer
-				validateAction(ball);
+				
+				// no need to validate action on collision hits
+				if (!ball.hasCollidedCorrectly) 
+					validateAction(ball);
 			}
 		}
 
@@ -333,7 +351,12 @@ public class Level {
 		if (balls.size < MAX_NUM_OBJECT_ONSCREEN && spawnMoreBalls) {
 			if (time > RESPAWN_TIME) {
 				texture = getNextTexture();
-				b = spawnBall(texture, -1.0f, currText);
+				if (currText == YELLOW) {
+					b = spawnBall(Assets.animationList.first(), -1.0f, currText);
+				}
+				else {
+					b = spawnBall(texture, -1.0f, currText);
+				}
 				b.setVelocity( new Vector2( (random.nextFloat()*MAX_SPEED) - 5.0f, (random.nextFloat()*MAX_SPEED) - 5.0f) );
 				time = 0.0f;					// reset spawn timer
 			}
@@ -380,7 +403,7 @@ public class Level {
 					ballA.hasCollidedCorrectly = true;
 					ballB.hasCollidedCorrectly = true;
 					Gdx.app.log("COLLISION", "Ball " + ballA.getType() + " is colliding with " + ballB.getType());
-					//TODO set removed true
+					//TODO increase the score
 				}
 				ballA.startContact();
 				ballB.startContact();

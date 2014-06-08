@@ -2,13 +2,15 @@ package com.code2play.quickout;
 
 import java.util.Random;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.Filter;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
-import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.utils.Array;
 import com.code2play.quickout.Level.EntityType;
 
@@ -22,13 +24,16 @@ public class Ball extends Entity {
 	public String type;									// representation of the ball's type
 	public int tag;
 	public boolean hasCollidedCorrectly = false;		// whether of not the ball is correctly collided of the specified type
+	
+	/* Animations */
+	private Array<Animation> animList;
+	private Animation currAnim;							// Current animation
 
 	/* ALL BALL STATE (default idle state */
 	public static final int TAPPED = 0;					// indicates the ball is just being tapped 
 	public static final int LONG_TAPPED = 1;			// indicates the ball is just being long-tapped
 	public static final int DRAGGED = 2;				// indicates the ball is just being dragged
 	public static final int FLINGED = 3;				// indicates the ball is just being let go of drag state
-	public static final int COLLIDED = 4;				// indicates the ball is just collided with another ball
 
 	public Ball(Texture texture, float radius, int tag) {
 		super(texture, radius);
@@ -40,16 +45,19 @@ public class Ball extends Entity {
 		this.radius = radius;
 	}
 	
-	public Ball(Array<Texture> textures, float radius, int tag) {
-		super(textures, radius);
+	public Ball(Array<Animation> animList, float radius, int tag) {
+		super(radius);
+		this.animList = animList;
 		setType(tag);
-		Random random = new Random();
-		velocity = new Vector2(random.nextInt(50), random.nextInt(50));
-		//		velocity = new Vector2(0, 0);
 		mass = 1;
 		this.radius = radius;
+		currAnim = animList.first();
 	}
-
+	
+	public Animation getCurrentAnimation() {
+		return currAnim;
+	}
+	
 	public void setType(int tag) {
 		this.tag = tag;
 
@@ -186,9 +194,20 @@ public class Ball extends Entity {
 
 			/* the ball is currently being dragged */
 		case DRAGGED:
-
+			if (tag == level.YELLOW) currAnim = animList.get(1);			// TODO NOT HARDCODED THIS
+			if (hasCollidedCorrectly) {
+				Gdx.app.log("DRAGGED COLLISION", "Dragged ball " + type + " has collided correctly!");
+				//TODO set mousejoint in WorldView to null if this ball 
+				// is a dragged ball
+				level.getWorldRenderer().draggedBall = null;
+				level.getPhysicsWorld().destroyJoint(level.getWorldRenderer().mouseJoint);
+				level.getWorldRenderer().mouseJoint = null;
+				removed = true;
+				dispose();
+				return;
+			}
+			
 			break;
-
 		case LONG_TAPPED:
 			removed = true;
 			dispose();
@@ -196,6 +215,7 @@ public class Ball extends Entity {
 
 			/* the ball is just released of the drag with certain velocity threshold*/
 		case FLINGED:
+			if (tag == level.YELLOW) currAnim = animList.get(2);			// TODO NOT HARDCODED THIS
 			if (x + radius < 0 || x - radius > level.getMaxX() 
 					|| y + radius < 0 || y - radius > level.getMaxY()) {
 				removed = true;
@@ -205,16 +225,16 @@ public class Ball extends Entity {
 		
 			break;
 			
-		case COLLIDED:
-//			removed = true;
-//			dispose();
-//			return;
-			break;
-			
-			/* default state is INACTIVE */
+		/* default state is INACTIVE */
 		default:
-
+			if (tag == level.YELLOW) currAnim = animList.first();
 			break;
+		}
+		
+		if (hasCollidedCorrectly) {
+			removed = true;
+			dispose();
+			return;
 		}
 
 		// update state time

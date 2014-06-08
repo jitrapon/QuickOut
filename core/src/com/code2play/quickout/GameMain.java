@@ -26,6 +26,7 @@ public class GameMain extends Game {
 	@Override
 	public void dispose() {
 		// dispose of all the native resources
+		Assets.dispose();
 	}
 
 	@Override

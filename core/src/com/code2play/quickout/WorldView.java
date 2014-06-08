@@ -64,7 +64,7 @@ public class WorldView implements GestureListener {
 	 * */
 	public void render(float delta) {
 		// debug fps log
-		//		fpsLogger.log();
+//		fpsLogger.log();
 
 		// clear the screen with a dark blue color. The
 		// arguments to glClearColor are the red, green
@@ -113,7 +113,13 @@ public class WorldView implements GestureListener {
 		Iterator<Ball> iter = level.getBalls().iterator();
 		while (iter.hasNext()) {
 			Ball ball = iter.next();
-			batch.draw(ball.texture, ball.x - ball.radius, ball.y - ball.radius, ball.radius*2, ball.radius*2);
+			if (ball.tag == level.YELLOW) {
+				batch.draw(ball.getCurrentAnimation().getKeyFrame(ball.stateTime), 
+						ball.x - ball.radius, ball.y - ball.radius, ball.radius*2, ball.radius*2);
+			}
+			else {
+				batch.draw(ball.texture, ball.x - ball.radius, ball.y - ball.radius, ball.radius*2, ball.radius*2);
+			}
 		}
 	}
 

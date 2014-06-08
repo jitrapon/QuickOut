@@ -50,9 +50,6 @@ public class Entity {
 	/** This game object's texture to be drawn */
 	public Texture texture;
 	
-	/** This game object's textures list */
-	public Array<Texture> textures;
-	
 	/** Holds this game object's bounding rectangle in world space */
 	protected Circle bounds;
 	
@@ -89,20 +86,19 @@ public class Entity {
 		numContacts = 0;
 	}
 	
+	public Entity(float radius) {
+		this();
+		bounds.radius = radius;
+		width = radius;
+		height = radius;
+	}
+	
 	public Entity(Texture text, float radius) {
 		this();
 		bounds.radius = radius;
 		width = radius;
 		height = radius;
 		texture = text;
-	}
-	
-	public Entity(Array<Texture> text, float radius) {
-		this();
-		bounds.radius = radius;
-		width = radius;
-		height = radius;
-		textures = text;
 	}
 	
 	public Body getBody() {
