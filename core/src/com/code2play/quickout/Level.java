@@ -46,10 +46,10 @@ public class Level {
 	/* This level's constants */
 	private static final float BALL_RADIUS = 75.0f;
 	private static final int MAX_NUM_OBJECT_ONSCREEN = 17;						// maximum number of spawnable objects onscreen at this level
-	private static final int VIRTUAL_WIDTH = Gdx.graphics.getWidth();			// the screen width in world's coordinate
-	private static final int VIRTUAL_HEIGHT = Gdx.graphics.getHeight();			// the screen height in world's coordinate
+	private static final int VIRTUAL_WIDTH = 900;								// the screen width in world's coordinate
+	private static final int VIRTUAL_HEIGHT = 1600;								// the screen height in world's coordinate
 	private static final float MAX_SPEED = 20.0f;								// the maximum speed of any ball
-	private static final float RESPAWN_TIME = 0.15f;							// time in seconds before the next respawn
+	private static final float RESPAWN_TIME = 0.50f;							// time in seconds before the next respawn
 	public boolean spawnMoreBalls = true;										// indicates whether to continue spawning more balls
 
 	/* Some variables */
@@ -339,7 +339,7 @@ public class Level {
 			// remove objects that are flagged as removed
 			if (ball.removed) {
 				iter.remove();
-				time = 0.0f;					// reset spawn timer
+				if (time > RESPAWN_TIME) time = 0.0f;					// reset spawn timer
 				
 				// no need to validate action on collision hits
 				if (!ball.hasCollidedCorrectly) 
@@ -361,6 +361,10 @@ public class Level {
 				time = 0.0f;					// reset spawn timer
 			}
 		}
+		
+		//TODO set current level's objective if the timer is up
+		
+		// update respawn timer
 		time += delta;
 	}
 

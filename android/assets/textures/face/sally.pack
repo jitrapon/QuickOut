@@ -16,6 +16,48 @@ idle
   size: 150, 150
   orig: 150, 150
   offset: 0, 0
+  index: 10
+idle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 11
+idle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 12
+idle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 13
+idle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 14
+idle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 15
+idle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
   index: 2
 idle
   rotate: false
@@ -44,6 +86,27 @@ idle
   size: 150, 150
   orig: 150, 150
   offset: 0, 0
+  index: 6
+idle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 7
+idle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 8
+idle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
   index: 9
 idle
   rotate: false
@@ -51,21 +114,21 @@ idle
   size: 150, 150
   orig: 150, 150
   offset: 0, 0
-  index: 6
+  index: 16
 idle
   rotate: false
   xy: 153, 1
   size: 150, 150
   orig: 150, 150
   offset: 0, 0
-  index: 8
+  index: 18
 idle
   rotate: false
   xy: 305, 1
   size: 150, 150
   orig: 150, 150
   offset: 0, 0
-  index: 7
+  index: 17
 poked
   rotate: false
   xy: 457, 1

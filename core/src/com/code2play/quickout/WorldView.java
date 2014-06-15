@@ -15,6 +15,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.joints.MouseJoint;
 import com.badlogic.gdx.physics.box2d.joints.MouseJointDef;
+import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 /**
  * WorldView renders all the entities that belong to a World. 
@@ -24,11 +26,12 @@ import com.badlogic.gdx.physics.box2d.joints.MouseJointDef;
  */
 public class WorldView implements GestureListener {
 
-	private static final int VIRTUAL_WIDTH = Gdx.graphics.getWidth();
-	private static final int VIRTUAL_HEIGHT = Gdx.graphics.getHeight();
+	private static final int VIRTUAL_WIDTH = 900;
+	private static final int VIRTUAL_HEIGHT = 1600;
 
 	private Level level;
 	private OrthographicCamera camera;
+	private Viewport viewport;
 	private SpriteBatch batch;
 	private BitmapFont font;
 	private FPSLogger fpsLogger;
@@ -48,6 +51,7 @@ public class WorldView implements GestureListener {
 		// create the camera
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+		viewport = new ExtendViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
 		batch = new SpriteBatch();
 		font = new BitmapFont();
 
@@ -57,6 +61,10 @@ public class WorldView implements GestureListener {
 		gestureDetector = new GestureDetector(20, 0.5f, longPressDuration, 0.15f, this);
 		Gdx.input.setInputProcessor(gestureDetector);
 	}
+	
+	public void resize(int width, int height) {
+		viewport.update(width, height);
+	}
 
 	/** Called when the view should be rendered.
 	 * 
@@ -64,7 +72,7 @@ public class WorldView implements GestureListener {
 	 * */
 	public void render(float delta) {
 		// debug fps log
-//		fpsLogger.log();
+		fpsLogger.log();
 
 		// clear the screen with a dark blue color. The
 		// arguments to glClearColor are the red, green

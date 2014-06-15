@@ -14,8 +14,8 @@ public class MainMenuScreen implements Screen {
 	OrthographicCamera camera;
 	public SpriteBatch batch;
 	public BitmapFont font;
-	private static final int VIRTUAL_WIDTH = Gdx.graphics.getWidth();
-	private static final int VIRTUAL_HEIGHT = Gdx.graphics.getHeight();
+	private static final int VIRTUAL_WIDTH = 900;
+	private static final int VIRTUAL_HEIGHT = 1600;
 	
 	private int deltaFrame = 0;
 	
