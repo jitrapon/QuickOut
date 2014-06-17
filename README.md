@@ -33,6 +33,10 @@ Pattern matching challenge example :
 
 1. tap red, blue, green in order
 2. drag every other color except x color
+3. stick balls together 
+
+Combo Gauge:
+
 
 Bonus object:
 
@@ -47,6 +51,10 @@ Bonus object:
 8. Small balls (Minimizer)
 9. Slow timer (Slow Time)
 10. No points deduction (No Penalty)
+11. sucks in stuff ! (Vacuum)
+12. wild card (Wildcard)
+13. extends time by x seconds (Need More Time)
+14. more balls! (Populator)
 
 Round rules:
 1. Combo enabled
@@ -57,6 +65,11 @@ Round rules:
 6. x2 points reduction
 7. No boundary
 8. Temporary greyscale
+9. 3-sec bomb
+10. instant bomb
+11. frozen ball
+12. Tilt-screen only
+13. Special Ball 
 
 Business model
 1. Score sharing. Challenge players on social media.
