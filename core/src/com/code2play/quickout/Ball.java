@@ -194,7 +194,7 @@ public class Ball extends Entity {
 
 			/* the ball is currently being dragged */
 		case DRAGGED:
-			if (tag == level.YELLOW) currAnim = animList.get(1);			// TODO NOT HARDCODED THIS
+			currAnim = animList.get(1);										// TODO NOT HARDCODED THIS
 			if (hasCollidedCorrectly) {
 				Gdx.app.log("DRAGGED COLLISION", "Dragged ball " + type + " has collided correctly!");
 				//TODO set mousejoint in WorldView to null if this ball 
@@ -215,7 +215,7 @@ public class Ball extends Entity {
 
 			/* the ball is just released of the drag with certain velocity threshold*/
 		case FLINGED:
-			if (tag == level.YELLOW) currAnim = animList.get(2);			// TODO NOT HARDCODED THIS
+			currAnim = animList.get(2);			// TODO NOT HARDCODED THIS
 			if (x + radius < 0 || x - radius > level.getMaxX() 
 					|| y + radius < 0 || y - radius > level.getMaxY()) {
 				removed = true;
@@ -227,7 +227,7 @@ public class Ball extends Entity {
 			
 		/* default state is INACTIVE */
 		default:
-			if (tag == level.YELLOW) currAnim = animList.first();
+			currAnim = animList.first();
 			break;
 		}
 		

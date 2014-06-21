@@ -20,14 +20,12 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 /**
  * WorldView renders all the entities that belong to a World. 
+ * This renders all the scene objects as well as HUDs and various dialogs
  * 
- * @author Jitrapon
+ * @author Jitrapon Tiachunpun
  *
  */
 public class WorldView implements GestureListener {
-
-	private static final int VIRTUAL_WIDTH = 900;
-	private static final int VIRTUAL_HEIGHT = 1600;
 
 	private Level level;
 	private OrthographicCamera camera;
@@ -45,23 +43,27 @@ public class WorldView implements GestureListener {
 	protected MouseJoint mouseJoint = null;
 
 	public WorldView(Level level) {
+		// debug: log fps in console
 		fpsLogger = new FPSLogger();
 		this.level = level;
 
-		// create the camera
+		// create the camera with the coordinate specified
+		// initialize the drawing batch as well
 		camera = new OrthographicCamera();
-		camera.setToOrtho(false, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
-		viewport = new ExtendViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
+		camera.setToOrtho(false, Level.VIRTUAL_WIDTH, Level.VIRTUAL_HEIGHT);
+		viewport = new ExtendViewport(Level.VIRTUAL_WIDTH, Level.VIRTUAL_HEIGHT, camera);
 		batch = new SpriteBatch();
 		font = new BitmapFont();
 
-//		level.debugInit();
+		// initialize level contents
+		//		level.debugInit();
 		level.init();
 
+		// set up input listener
 		gestureDetector = new GestureDetector(20, 0.5f, longPressDuration, 0.15f, this);
 		Gdx.input.setInputProcessor(gestureDetector);
 	}
-	
+
 	public void resize(int width, int height) {
 		viewport.update(width, height);
 	}
@@ -72,7 +74,7 @@ public class WorldView implements GestureListener {
 	 * */
 	public void render(float delta) {
 		// debug fps log
-		fpsLogger.log();
+		//		fpsLogger.log();
 
 		// clear the screen with a dark blue color. The
 		// arguments to glClearColor are the red, green
@@ -90,7 +92,7 @@ public class WorldView implements GestureListener {
 
 		// begin a new batch and draw 
 		batch.begin();
-		font.draw(batch, "Game started!", VIRTUAL_WIDTH/2, VIRTUAL_HEIGHT);
+		font.draw(batch, "Game started!", Level.VIRTUAL_WIDTH/2, Level.VIRTUAL_HEIGHT);
 		drawBalls();
 		batch.end();
 
@@ -100,8 +102,10 @@ public class WorldView implements GestureListener {
 		}
 
 		// for gravity-enabled levels
-		if (Gdx.input.isPeripheralAvailable(Peripheral.Accelerometer) == true) { 
-			processAccelerometer();
+		if (level.gravityEnabled) {
+			if (Gdx.input.isPeripheralAvailable(Peripheral.Accelerometer) == true) { 
+				processAccelerometer();
+			}
 		}
 	}
 
@@ -121,13 +125,8 @@ public class WorldView implements GestureListener {
 		Iterator<Ball> iter = level.getBalls().iterator();
 		while (iter.hasNext()) {
 			Ball ball = iter.next();
-			if (ball.tag == level.YELLOW) {
-				batch.draw(ball.getCurrentAnimation().getKeyFrame(ball.stateTime), 
-						ball.x - ball.radius, ball.y - ball.radius, ball.radius*2, ball.radius*2);
-			}
-			else {
-				batch.draw(ball.texture, ball.x - ball.radius, ball.y - ball.radius, ball.radius*2, ball.radius*2);
-			}
+			batch.draw(ball.getCurrentAnimation().getKeyFrame(ball.stateTime), 
+					ball.x - ball.radius, ball.y - ball.radius, ball.radius*2, ball.radius*2);
 		}
 	}
 
@@ -146,7 +145,7 @@ public class WorldView implements GestureListener {
 
 	@Override
 	public boolean tap(float x, float y, int count, int button) {
-//		Gdx.app.log("Tap", x + ", " + y);
+		//		Gdx.app.log("Tap", x + ", " + y);
 		for (Ball b : level.getBalls()) {
 			ballPos.set(b.x, b.y);
 			touchPos.set(x, y, 0);
@@ -160,7 +159,7 @@ public class WorldView implements GestureListener {
 
 	@Override
 	public boolean longPress(float x, float y) {
-//		Gdx.app.log("Long Press", x + ", " + y);
+		//		Gdx.app.log("Long Press", x + ", " + y);
 		for (Ball b : level.getBalls()) {
 			ballPos.set(b.x, b.y);
 			touchPos.set(x, y, 0);
@@ -174,7 +173,7 @@ public class WorldView implements GestureListener {
 
 	@Override
 	public boolean fling(float velocityX, float velocityY, int button) {
-//		Gdx.app.log("FLING", "Flinging with velocity " + velocityX + " " + velocityY);
+		//		Gdx.app.log("FLING", "Flinging with velocity " + velocityX + " " + velocityY);
 		return false;
 	}
 
@@ -228,7 +227,7 @@ public class WorldView implements GestureListener {
 
 	@Override
 	public boolean panStop(float x, float y, int pointer, int button) {
-//		Gdx.app.log("PAN STOP", "Panning stop at location " + x + " " + y);
+		//		Gdx.app.log("PAN STOP", "Panning stop at location " + x + " " + y);
 		//TODO check velocity
 		if (draggedBall != null) {
 			draggedBall.setState(Ball.FLINGED);

@@ -44,21 +44,22 @@ public class Level {
 	public static final float BOX_TO_WORLD = 75.0f;	
 
 	/* This level's constants */
+	public boolean gravityEnabled = false;
 	private static final float BALL_RADIUS = 75.0f;
 	private static final int MAX_NUM_OBJECT_ONSCREEN = 17;						// maximum number of spawnable objects onscreen at this level
-	private static final int VIRTUAL_WIDTH = 900;								// the screen width in world's coordinate
-	private static final int VIRTUAL_HEIGHT = 1600;								// the screen height in world's coordinate
+	public static final int VIRTUAL_WIDTH = 900;								// the screen width in world's coordinate
+	public static final int VIRTUAL_HEIGHT = 1600;								// the screen height in world's coordinate
 	private static final float MAX_SPEED = 20.0f;								// the maximum speed of any ball
 	private static final float RESPAWN_TIME = 0.50f;							// time in seconds before the next respawn
 	public boolean spawnMoreBalls = true;										// indicates whether to continue spawning more balls
 
 	/* Some variables */
-	private float time = 0.0f;													// keep tracks of current time in seconds (for next respawn)
+	private float spawnTime = 0.0f;												// keep tracks of current time in seconds (for next respawn)
 	private Array<Ball> balls;													// contains the list of balls onscreen at this level
 	private Body groundBody;													// used as anchor for mousejoint only
 
 	/* Ball Type Constants */ 
-	private int currText = -1;													// the current texture number so far
+	private int currBallType = -1;												// the current type of the ball that will spawned
 	public static final int BLUE = 0;
 	public static final int GREEN = 1;
 	public static final int RED = 2;
@@ -122,20 +123,31 @@ public class Level {
 		return world;
 	}
 
-	public Texture getNextTexture() {
-		currText++;
-		if (currText >= Assets.textures.size) 
-			currText = BLUE;
-		return Assets.textures.get(currText);
-	}
-
-	public Texture getTexture(int texture) {
-		if (texture >= Assets.textures.size)  return null;
-		else  return Assets.textures.get(texture);
+	/**
+	 * Returns the next animation set after the previous set.
+	 * The ordering is specified by the Assets class. 
+	 * @return
+	 */
+	public Array<Animation> getNextAnimationSet() {
+		currBallType++;
+		if (currBallType >= Assets.animationList.size) 
+			currBallType = 0;
+		return Assets.animationList.get(currBallType);
 	}
 
 	/**
-	 * Initialize physical bodies in this level
+	 * Returns the specified animation set.
+	 * The ordering is specified by the Assets class.
+	 * @param index
+	 * @return
+	 */
+	public Array<Animation> getAnimationSet(int index) {
+		if (index >= Assets.animationList.size)  return null;
+		else  return Assets.animationList.get(index);
+	}
+
+	/**
+	 * Initialize all physical bodies in this level
 	 */
 	public void init() {
 		createGroundBody();
@@ -143,30 +155,29 @@ public class Level {
 
 		//		float vel = 1.1f; // min
 		float vel = 3.5f;
-		Texture texture = getNextTexture();
-		Ball b = spawnBall(texture, (float)(0.27*1*VIRTUAL_WIDTH), 
-				(float)(0.5*VIRTUAL_HEIGHT), -1.0f, currText);
+		Array<Animation> anim = getNextAnimationSet();
+		Ball b = spawnBall(anim, (float)(0.27*1*VIRTUAL_WIDTH), 
+				(float)(0.5*VIRTUAL_HEIGHT), -1.0f, currBallType);
 		b.setVelocity(new Vector2(vel, 0));
 
-		texture = getNextTexture();
-		b = spawnBall(texture, (float)(0.27*2*VIRTUAL_WIDTH), 
-				(float)(0.5*VIRTUAL_HEIGHT), -1.0f, currText);
+		anim = getNextAnimationSet();
+		b = spawnBall(anim, (float)(0.27*2*VIRTUAL_WIDTH), 
+				(float)(0.5*VIRTUAL_HEIGHT), -1.0f, currBallType);
 		b.setVelocity(new Vector2(0, 0));
 
-		texture = getNextTexture();
-		b = spawnBall(texture, (float)(0.27*3*VIRTUAL_WIDTH), 
-				(float)(0.5*VIRTUAL_HEIGHT), -1.0f, currText);
+		anim = getNextAnimationSet();
+		b = spawnBall(anim, (float)(0.27*3*VIRTUAL_WIDTH), 
+				(float)(0.5*VIRTUAL_HEIGHT), -1.0f, currBallType);
 		b.setVelocity(new Vector2(vel*-1, 0));
 
-		// SALLY!
-		texture = getNextTexture();
-		b = spawnBall(Assets.animationList.first(), (float)(0.27*2*VIRTUAL_WIDTH), 
-				(float)(0.75*VIRTUAL_HEIGHT), -1.0f, currText);
+		anim = getNextAnimationSet();
+		b = spawnBall(anim, (float)(0.27*2*VIRTUAL_WIDTH), 
+				(float)(0.75*VIRTUAL_HEIGHT), -1.0f, currBallType);
 		b.setVelocity(new Vector2(0, vel*-1));
 
-		texture = getNextTexture();
-		b = spawnBall(texture, (float)(0.27*2*VIRTUAL_WIDTH), 
-				(float)(0.25*VIRTUAL_HEIGHT), -1.0f, currText);
+		anim = getNextAnimationSet();
+		b = spawnBall(anim, (float)(0.27*2*VIRTUAL_WIDTH), 
+				(float)(0.25*VIRTUAL_HEIGHT), -1.0f, currBallType);
 		b.setVelocity(new Vector2(0, vel));
 	}
 
@@ -177,7 +188,7 @@ public class Level {
 		createGroundBody();
 		createWallBoundary();
 	}
-	
+
 	public Ball spawnBall(Array<Animation> animList, float posX, float posY, float lifeTime, int tag) {
 		Ball ball = new Ball(animList, BALL_RADIUS, tag);
 		ball.setWorld(this);
@@ -185,7 +196,7 @@ public class Level {
 		addBall(ball);
 		return ball;
 	}
-	
+
 	public Ball spawnBall(Array<Animation> animList, float lifeTime, int tag) {
 		Ball ball = new Ball(animList, BALL_RADIUS, tag);
 		ball.setWorld(this);
@@ -210,7 +221,7 @@ public class Level {
 		addBall(ball);
 		return ball;
 	}
-	
+
 	/**
 	 * Spawn a ball on a random world coordinate within the camera
 	 * @param t The ball's texture
@@ -264,38 +275,38 @@ public class Level {
 		Body wallBody = world.createBody(wallDef);
 		EdgeShape borderShape = new EdgeShape();
 		FixtureDef fixtureDef = new FixtureDef(); 
-//		FixtureDef fixtureDefSensor = new FixtureDef();
+		//		FixtureDef fixtureDefSensor = new FixtureDef();
 
 		// Create fixtures for the four borders (the border shape is re-used)
 		borderShape.set(lowerLeftCorner, lowerRightCorner);
 		fixtureDef.shape = borderShape;
 		fixtureDef.filter.categoryBits = EntityType.WALL.categoryBits;
 		fixtureDef.density = 0;
-//		fixtureDefSensor.shape = borderShape;
-//		fixtureDefSensor.filter.categoryBits = EntityType.BALL.categoryBits;			// this is a bit of a hack, we use BALL category so that
+		//		fixtureDefSensor.shape = borderShape;
+		//		fixtureDefSensor.filter.categoryBits = EntityType.BALL.categoryBits;			// this is a bit of a hack, we use BALL category so that
 		// the ball still registers callback 
-//		fixtureDefSensor.density = 0;
-//		fixtureDefSensor.isSensor = true;
+		//		fixtureDefSensor.density = 0;
+		//		fixtureDefSensor.isSensor = true;
 		wallBody.createFixture(fixtureDef);
-//		wallBody.createFixture(fixtureDefSensor);
+		//		wallBody.createFixture(fixtureDefSensor);
 
 		borderShape.set(lowerRightCorner, upperRightCorner);
 		fixtureDef.shape = borderShape;
-//		fixtureDefSensor.shape = borderShape;
+		//		fixtureDefSensor.shape = borderShape;
 		wallBody.createFixture(fixtureDef);
-//		wallBody.createFixture(fixtureDefSensor);
+		//		wallBody.createFixture(fixtureDefSensor);
 
 		borderShape.set(upperRightCorner, upperLeftCorner);
 		fixtureDef.shape = borderShape;
-//		fixtureDefSensor.shape = borderShape;
+		//		fixtureDefSensor.shape = borderShape;
 		wallBody.createFixture(fixtureDef);
-//		wallBody.createFixture(fixtureDefSensor);
+		//		wallBody.createFixture(fixtureDefSensor);
 
 		borderShape.set(upperLeftCorner, lowerLeftCorner);
 		fixtureDef.shape = borderShape;
-//		fixtureDefSensor.shape = borderShape;
+		//		fixtureDefSensor.shape = borderShape;
 		wallBody.createFixture(fixtureDef);
-//		wallBody.createFixture(fixtureDefSensor);
+		//		wallBody.createFixture(fixtureDefSensor);
 
 		borderShape.dispose();
 
@@ -322,8 +333,9 @@ public class Level {
 	Random random = new Random();
 	Texture texture = null;
 	Ball b = null;
+	Array<Animation> anim = null;
+	
 	/** Called when the World is to be updated.
-	 * 
 	 * @param delta the time in seconds since the last render. */
 	public void update(float delta) {
 		// step through the physics framework to calculate the next frame
@@ -339,8 +351,8 @@ public class Level {
 			// remove objects that are flagged as removed
 			if (ball.removed) {
 				iter.remove();
-				if (time > RESPAWN_TIME) time = 0.0f;					// reset spawn timer
-				
+				if (spawnTime > RESPAWN_TIME) spawnTime = 0.0f;					// reset spawn timer
+
 				// no need to validate action on collision hits
 				if (!ball.hasCollidedCorrectly) 
 					validateAction(ball);
@@ -349,23 +361,18 @@ public class Level {
 
 		// spawn entities if current num is less than max value
 		if (balls.size < MAX_NUM_OBJECT_ONSCREEN && spawnMoreBalls) {
-			if (time > RESPAWN_TIME) {
-				texture = getNextTexture();
-				if (currText == YELLOW) {
-					b = spawnBall(Assets.animationList.first(), -1.0f, currText);
-				}
-				else {
-					b = spawnBall(texture, -1.0f, currText);
-				}
+			if (spawnTime > RESPAWN_TIME) {
+				anim = getNextAnimationSet();
+				b = spawnBall(anim, -1.0f, currBallType);
 				b.setVelocity( new Vector2( (random.nextFloat()*MAX_SPEED) - 5.0f, (random.nextFloat()*MAX_SPEED) - 5.0f) );
-				time = 0.0f;					// reset spawn timer
+				spawnTime = 0.0f;					// reset spawn timer
 			}
 		}
-		
+
 		//TODO set current level's objective if the timer is up
-		
+
 		// update respawn timer
-		time += delta;
+		spawnTime += delta;
 	}
 
 	/**
@@ -422,7 +429,7 @@ public class Level {
 						contact.getFixtureB().getBody().getUserData().equals("wall")) 
 					return;
 			}
-			
+
 			Ball ball = null;
 			if (contact.getFixtureA() != null) {
 				if (contact.getFixtureA().getBody().getUserData() instanceof Ball) {
@@ -430,7 +437,7 @@ public class Level {
 					ball.endContact();
 				} 
 			}
-			
+
 			if (contact.getFixtureB() != null) {
 				if (contact.getFixtureB().getBody().getUserData() instanceof Ball) {
 					ball = (Ball) contact.getFixtureB().getBody().getUserData();

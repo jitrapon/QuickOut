@@ -33,31 +33,36 @@ public class Assets {
 	 */
 	private static void loadTextures() {
 		textures = new Array<Texture>(DEFAULT_TEXTURE_LOAD_SIZE);
-		textures.add( new Texture("textures/ball/blue.png") );
-		textures.add( new Texture("textures/ball/green.png") );
-		textures.add( new Texture("textures/ball/red.png") );
-		textures.add( new Texture("textures/ball/yellow.png") );
 	}
 	
 	private static void loadAnimations() {
-		textureAtlas = new TextureAtlas(Gdx.files.internal("textures/face/sally.pack"));
+		textureAtlas = new TextureAtlas(Gdx.files.internal("textures/ball/ball.pack"));
 		animationList = new Array<Array<Animation>>();
 		
 		// There are three animations to load, namely IDLE, PROVOKED, and SCARED
-		Array<Animation> anim = new Array<Animation>(3);
-		Animation temp = new Animation( 1/15f, textureAtlas.findRegions("idle") );
-		temp.setPlayMode(PlayMode.LOOP);
-		anim.add(temp);
-
-		temp = new Animation( 1/15f, textureAtlas.findRegions("poked") );
-		temp.setPlayMode(PlayMode.LOOP);
-		anim.add(temp);
-		
-		temp = new Animation( 1/15f, textureAtlas.findRegions("scared") );
-		temp.setPlayMode(PlayMode.LOOP);
-		anim.add(temp);
-		
-		animationList.add(anim);
+		Array<String> prefixes = new Array<String>(4);
+		prefixes.addAll("Blue", "Green", "Red", "Yellow");							// order of type is specified here
+		Animation animation = null;
+		for (String name : prefixes) {
+			// Idle animation
+			Array<Animation> anim = new Array<Animation>(3);
+			animation = new Animation( 1/15f, textureAtlas.findRegions(name + "Idle") );
+			animation.setPlayMode(PlayMode.LOOP);
+			anim.add(animation);
+			
+			// Dragged animation
+			animation = new Animation( 1/15f, textureAtlas.findRegions(name + "Poked") );
+			animation.setPlayMode(PlayMode.LOOP);
+			anim.add(animation);
+			
+			// Flinged animation
+			animation = new Animation( 1/15f, textureAtlas.findRegions(name + "Scared") );
+			animation.setPlayMode(PlayMode.LOOP);
+			anim.add(animation);
+			
+			animationList.add(anim);
+		}
+		Gdx.app.log("ANIMATION", "Done loading animation with size " + animationList.size);
 	}
 	
 	public static void dispose() {
