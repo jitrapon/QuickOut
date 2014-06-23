@@ -44,7 +44,7 @@ public class Level {
 	public static final float BOX_TO_WORLD = 75.0f;	
 
 	/* This level's constants */
-	public boolean gravityEnabled = false;
+	public boolean gravityEnabled = true;
 	private static final float BALL_RADIUS = 75.0f;
 	private static final int MAX_NUM_OBJECT_ONSCREEN = 17;						// maximum number of spawnable objects onscreen at this level
 	public static final int VIRTUAL_WIDTH = 900;								// the screen width in world's coordinate

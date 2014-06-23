@@ -1,0 +1,208 @@
+
+ball.png
+format: RGBA8888
+filter: MipMapLinearNearest,Nearest
+repeat: none
+BlueIdle
+  rotate: false
+  xy: 1, 305
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 1
+BluePoked
+  rotate: false
+  xy: 1, 305
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 1
+BlueScared
+  rotate: false
+  xy: 1, 305
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 1
+GreenIdle
+  rotate: false
+  xy: 1, 153
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 1
+GreenPoked
+  rotate: false
+  xy: 1, 153
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 1
+GreenScared
+  rotate: false
+  xy: 1, 153
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 1
+RedIdle
+  rotate: false
+  xy: 153, 305
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 1
+RedPoked
+  rotate: false
+  xy: 153, 305
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 1
+RedScared
+  rotate: false
+  xy: 153, 305
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 1
+YellowIdle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 1
+YellowIdle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 10
+YellowIdle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 11
+YellowIdle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 12
+YellowIdle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 13
+YellowIdle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 14
+YellowIdle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 15
+YellowIdle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 2
+YellowIdle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 3
+YellowIdle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 4
+YellowIdle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 5
+YellowIdle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 6
+YellowIdle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 7
+YellowIdle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 8
+YellowIdle
+  rotate: false
+  xy: 1, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 9
+YellowIdle
+  rotate: false
+  xy: 153, 153
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 16
+YellowIdle
+  rotate: false
+  xy: 153, 153
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 18
+YellowIdle
+  rotate: false
+  xy: 305, 305
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 17
+YellowPoked
+  rotate: false
+  xy: 153, 1
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 1
+YellowScared
+  rotate: false
+  xy: 305, 153
+  size: 150, 150
+  orig: 150, 150
+  offset: 0, 0
+  index: 1

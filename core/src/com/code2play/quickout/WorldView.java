@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.FPSLogger;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.input.GestureDetector.GestureListener;
@@ -31,6 +32,7 @@ public class WorldView implements GestureListener {
 	private OrthographicCamera camera;
 	private Viewport viewport;
 	private SpriteBatch batch;
+	private Sprite gameBackground;
 	private BitmapFont font;
 	private FPSLogger fpsLogger;
 
@@ -58,23 +60,30 @@ public class WorldView implements GestureListener {
 		// initialize level contents
 		//		level.debugInit();
 		level.init();
+		gameBackground = new Sprite(Assets.getLevelBackground());
+		gameBackground.setSize(Level.VIRTUAL_WIDTH, Level.VIRTUAL_HEIGHT);
 
 		// set up input listener
 		gestureDetector = new GestureDetector(20, 0.5f, longPressDuration, 0.15f, this);
 		Gdx.input.setInputProcessor(gestureDetector);
 	}
 
+	/**
+	 * Resize the viewport to a specified resolution
+	 * Used by the GameScreen to resize current viewport
+	 * @param width
+	 * @param height
+	 */
 	public void resize(int width, int height) {
 		viewport.update(width, height);
 	}
 
 	/** Called when the view should be rendered.
-	 * 
 	 * @param delta the time in seconds since the last render. 
 	 * */
 	public void render(float delta) {
 		// debug fps log
-		//		fpsLogger.log();
+				fpsLogger.log();
 
 		// clear the screen with a dark blue color. The
 		// arguments to glClearColor are the red, green
@@ -92,8 +101,19 @@ public class WorldView implements GestureListener {
 
 		// begin a new batch and draw 
 		batch.begin();
-		font.draw(batch, "Game started!", Level.VIRTUAL_WIDTH/2, Level.VIRTUAL_HEIGHT);
+		/********************************
+		 * BEGIN DRAWING HERE
+		 *******************************/
+		// draw background
+		batch.disableBlending();
+		gameBackground.draw(batch);
+		batch.enableBlending();
+		// draw balls
 		drawBalls();
+		font.draw(batch, "Game started!", Level.VIRTUAL_WIDTH/2, Level.VIRTUAL_HEIGHT);
+		/********************************
+		 * END DRAWING
+		 *******************************/
 		batch.end();
 
 		// process user input
@@ -111,6 +131,9 @@ public class WorldView implements GestureListener {
 
 	float prevAccelX = 0.0f;
 	float prevAccelY = 0.0f;
+	/**
+	 * Process accelerometer values and apply gravity accordingly
+	 */
 	private void processAccelerometer() {
 		float y = Gdx.input.getAccelerometerY();
 		float x = Gdx.input.getAccelerometerX();
@@ -121,6 +144,9 @@ public class WorldView implements GestureListener {
 		}
 	}
 
+	/**
+	 * Draw all the balls onscreen
+	 */
 	public void drawBalls() {
 		Iterator<Ball> iter = level.getBalls().iterator();
 		while (iter.hasNext()) {

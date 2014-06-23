@@ -24,6 +24,7 @@ public class Assets {
 	 * Call this method to load all necessary texture files and etc.
 	 */
 	public static void load() {
+		textureAtlas = new TextureAtlas(Gdx.files.internal("textures/level/ball.pack"));
 		loadTextures();
 		loadAnimations();
 	}
@@ -33,10 +34,14 @@ public class Assets {
 	 */
 	private static void loadTextures() {
 		textures = new Array<Texture>(DEFAULT_TEXTURE_LOAD_SIZE);
+		textures.add(new Texture(Gdx.files.internal("textures/level/GameBackground.png")));
+	}
+	
+	public static Texture getLevelBackground() {
+		return textures.first();
 	}
 	
 	private static void loadAnimations() {
-		textureAtlas = new TextureAtlas(Gdx.files.internal("textures/ball/ball.pack"));
 		animationList = new Array<Array<Animation>>();
 		
 		// There are three animations to load, namely IDLE, PROVOKED, and SCARED
@@ -62,7 +67,6 @@ public class Assets {
 			
 			animationList.add(anim);
 		}
-		Gdx.app.log("ANIMATION", "Done loading animation with size " + animationList.size);
 	}
 	
 	public static void dispose() {
