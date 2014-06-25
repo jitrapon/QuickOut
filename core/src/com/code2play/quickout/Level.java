@@ -19,6 +19,7 @@ import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
+import com.code2play.game.IGameManager;
 
 /**
  * Level contains the world that Entities live in.
@@ -27,7 +28,7 @@ import com.badlogic.gdx.utils.Array;
  * @author Jitrapon
  *
  */
-public class Level {
+public class Level implements IGameManager {
 
 	/* Reference to WorldView */
 	private WorldView worldView;
@@ -95,10 +96,12 @@ public class Level {
 	 * Set the renderer after ctor
 	 * @param viewRenderer
 	 */
+	@Override
 	public void setWorldRenderer(WorldView viewRenderer) {
 		worldView = viewRenderer;
 	}
 
+	@Override
 	public WorldView getWorldRenderer() {
 		return worldView;
 	}
@@ -119,6 +122,7 @@ public class Level {
 		return VIRTUAL_HEIGHT;
 	}
 
+	@Override
 	public World getPhysicsWorld() {
 		return world;
 	}
@@ -146,9 +150,11 @@ public class Level {
 		else  return Assets.animationList.get(index);
 	}
 
+	
 	/**
 	 * Initialize all physical bodies in this level
 	 */
+	@Override
 	public void init() {
 		createGroundBody();
 		createWallBoundary();
@@ -337,6 +343,7 @@ public class Level {
 	
 	/** Called when the World is to be updated.
 	 * @param delta the time in seconds since the last render. */
+	@Override
 	public void update(float delta) {
 		// step through the physics framework to calculate the next frame
 		world.step(timeStep, velocityIterations, positionIterations);
@@ -454,5 +461,17 @@ public class Level {
 		public void postSolve(Contact contact, ContactImpulse impulse) {
 		}
 
-	};
+	}
+
+	@Override
+	public void saveGame() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void exitGame() {
+		// TODO Auto-generated method stub
+		
+	}
 }
