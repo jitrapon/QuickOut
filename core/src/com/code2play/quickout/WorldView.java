@@ -4,6 +4,7 @@ import java.util.Iterator;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Peripheral;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.FPSLogger;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -33,16 +34,23 @@ public class WorldView implements GestureListener {
 	private Viewport viewport;
 	private SpriteBatch batch;
 	private Sprite gameBackground;
-	private BitmapFont font;
 	private FPSLogger fpsLogger;
 
 	public Ball draggedBall;					// specifies which ball is currently being dragged
 
+	/** Gesture detector **/
 	GestureDetector gestureDetector;
 	private float longPressDuration = 1.0f;
 
 	/** our mouse joint **/
 	protected MouseJoint mouseJoint = null;
+	
+	/** Game HUD, the game hud is an abstract representation of the Scene2D stage **/
+	private GameHud gameHud;	
+	private static final int HUD_WIDTH = 576;
+	private static final int HUD_HEIGHT = 1024;
+	private static final int MAX_HUD_WIDTH = 768;
+	private static final int MAX_HUD_HEIGHT = 1024;
 
 	public WorldView(Level level) {
 		// debug: log fps in console
@@ -53,19 +61,27 @@ public class WorldView implements GestureListener {
 		// initialize the drawing batch as well
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, Level.VIRTUAL_WIDTH, Level.VIRTUAL_HEIGHT);
-		viewport = new ExtendViewport(Level.VIRTUAL_WIDTH, Level.VIRTUAL_HEIGHT, camera);
+		viewport = new ExtendViewport(Level.VIRTUAL_WIDTH, Level.VIRTUAL_HEIGHT, 
+				Level.MAX_VIRTUAL_WIDTH, Level.MAX_VIRTUAL_HEIGHT, camera);
 		batch = new SpriteBatch();
-		font = new BitmapFont();
 
 		// initialize level contents
 		//		level.debugInit();
 		level.init();
 		gameBackground = new Sprite(Assets.getLevelBackground());
 		gameBackground.setSize(Level.VIRTUAL_WIDTH, Level.VIRTUAL_HEIGHT);
+		
+		// initialize HUD
+		gameHud = new GameHud(level, HUD_WIDTH, HUD_HEIGHT, 
+				MAX_HUD_WIDTH, MAX_HUD_HEIGHT);
 
 		// set up input listener
+		// multiplexer is used for handling HUD overlain the game
+		InputMultiplexer inMultiplexer = new InputMultiplexer();
 		gestureDetector = new GestureDetector(20, 0.5f, longPressDuration, 0.15f, this);
-		Gdx.input.setInputProcessor(gestureDetector);
+		inMultiplexer.addProcessor(gestureDetector);
+		inMultiplexer.addProcessor(gameHud.getStage());
+		Gdx.input.setInputProcessor(inMultiplexer);
 	}
 
 	/**
@@ -76,6 +92,7 @@ public class WorldView implements GestureListener {
 	 */
 	public void resize(int width, int height) {
 		viewport.update(width, height);
+		gameHud.resize(width, height);
 	}
 
 	/** Called when the view should be rendered.
@@ -102,19 +119,23 @@ public class WorldView implements GestureListener {
 		// begin a new batch and draw 
 		batch.begin();
 		/********************************
-		 * BEGIN DRAWING HERE
+		 * BEGIN GAME ENTITIES DRAWING HERE
 		 *******************************/
 		// draw background
 		batch.disableBlending();
 		gameBackground.draw(batch);
 		batch.enableBlending();
+		
 		// draw balls
 		drawBalls();
-		font.draw(batch, "Game started!", Level.VIRTUAL_WIDTH/2, Level.VIRTUAL_HEIGHT);
+		
 		/********************************
-		 * END DRAWING
+		 * END GAME ENTITIES DRAWING
 		 *******************************/
 		batch.end();
+		
+		// draw game HUD
+		gameHud.draw(delta);
 
 		// process user input
 		// player has tapped the screen
@@ -158,7 +179,7 @@ public class WorldView implements GestureListener {
 
 	public void dispose() {
 		batch.dispose();
-		font.dispose();
+		gameHud.dispose();
 	}
 
 	Vector3 touchPos = new Vector3();

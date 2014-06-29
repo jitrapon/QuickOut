@@ -50,11 +50,14 @@ public class Level implements IGameManager {
 	private static final int MAX_NUM_OBJECT_ONSCREEN = 17;						// maximum number of spawnable objects onscreen at this level
 	public static final int VIRTUAL_WIDTH = 900;								// the screen width in world's coordinate
 	public static final int VIRTUAL_HEIGHT = 1600;								// the screen height in world's coordinate
+	public static final int MAX_VIRTUAL_WIDTH = 1200;
+	public static final int MAX_VIRTUAL_HEIGHT = 1600;
 	private static final float MAX_SPEED = 20.0f;								// the maximum speed of any ball
 	private static final float RESPAWN_TIME = 0.50f;							// time in seconds before the next respawn
 	public boolean spawnMoreBalls = true;										// indicates whether to continue spawning more balls
 
 	/* Some variables */
+	private int score = 0;														// current level's SCORE !!!
 	private float spawnTime = 0.0f;												// keep tracks of current time in seconds (for next respawn)
 	private Array<Ball> balls;													// contains the list of balls onscreen at this level
 	private Body groundBody;													// used as anchor for mousejoint only
@@ -90,6 +93,10 @@ public class Level implements IGameManager {
 		bListener = new CollisionListener();
 		world.setContactListener(bListener);
 		balls = new Array<Ball>(MAX_NUM_OBJECT_ONSCREEN);
+	}
+	
+	public int getScore() {
+		return score;
 	}
 
 	/**
@@ -361,8 +368,14 @@ public class Level implements IGameManager {
 				if (spawnTime > RESPAWN_TIME) spawnTime = 0.0f;					// reset spawn timer
 
 				// no need to validate action on collision hits
-				if (!ball.hasCollidedCorrectly) 
-					validateAction(ball);
+				if (!ball.hasCollidedCorrectly) {
+					if (validateAction(ball)) {
+						score += 100;
+					}
+				}
+				else {
+					score += 250;
+				}
 			}
 		}
 
