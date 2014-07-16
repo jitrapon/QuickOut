@@ -216,8 +216,8 @@ public class Ball extends Entity {
 			/* the ball is just released of the drag with certain velocity threshold*/
 		case FLINGED:
 			currAnim = animList.get(2);			// TODO NOT HARDCODED THIS
-			if (x + radius < 0 || x - radius > level.getMaxX() 
-					|| y + radius < 0 || y - radius > level.getMaxY()) {
+			if (x + radius < level.getMinX() || x - radius > level.getMaxX() 
+					|| y + radius < level.getMinY() || y - radius > level.getMaxY()) {
 				removed = true;
 				dispose();
 				return;

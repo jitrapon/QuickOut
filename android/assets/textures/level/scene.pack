@@ -1,0 +1,82 @@
+
+scene.png
+format: RGBA8888
+filter: MipMapLinearNearest,Nearest
+repeat: none
+hill
+  rotate: false
+  xy: 1, 346
+  size: 576, 122
+  orig: 576, 122
+  offset: 0, 0
+  index: -1
+ground
+  rotate: false
+  xy: 1, 235
+  size: 576, 109
+  orig: 576, 109
+  offset: 0, 0
+  index: -1
+cloud4
+  rotate: false
+  xy: 579, 279
+  size: 267, 189
+  orig: 267, 189
+  offset: 0, 0
+  index: -1
+cloud1
+  rotate: false
+  xy: 1, 47
+  size: 240, 186
+  orig: 240, 186
+  offset: 0, 0
+  index: -1
+cloud6
+  rotate: false
+  xy: 243, 116
+  size: 271, 117
+  orig: 271, 117
+  offset: 0, 0
+  index: -1
+cloud8
+  rotate: false
+  xy: 243, 1
+  size: 262, 113
+  orig: 262, 113
+  offset: 0, 0
+  index: -1
+cloud5
+  rotate: false
+  xy: 848, 351
+  size: 164, 117
+  orig: 164, 117
+  offset: 0, 0
+  index: -1
+cloud7
+  rotate: false
+  xy: 579, 155
+  size: 225, 122
+  orig: 225, 122
+  offset: 0, 0
+  index: -1
+cloud2
+  rotate: false
+  xy: 848, 249
+  size: 155, 100
+  orig: 155, 100
+  offset: 0, 0
+  index: -1
+cloud9
+  rotate: false
+  xy: 806, 140
+  size: 180, 107
+  orig: 180, 107
+  offset: 0, 0
+  index: -1
+cloud3
+  rotate: false
+  xy: 516, 48
+  size: 149, 105
+  orig: 149, 105
+  offset: 0, 0
+  index: -1

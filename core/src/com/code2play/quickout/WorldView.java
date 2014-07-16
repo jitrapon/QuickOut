@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.input.GestureDetector.GestureListener;
 import com.badlogic.gdx.math.Vector2;
@@ -33,7 +34,6 @@ public class WorldView implements GestureListener {
 	private OrthographicCamera camera;
 	private Viewport viewport;
 	private SpriteBatch batch;
-	private Sprite gameBackground;
 	private FPSLogger fpsLogger;
 
 	public Ball draggedBall;					// specifies which ball is currently being dragged
@@ -51,6 +51,12 @@ public class WorldView implements GestureListener {
 	private static final int HUD_HEIGHT = 1024;
 	private static final int MAX_HUD_WIDTH = 768;
 	private static final int MAX_HUD_HEIGHT = 1024;
+	
+	public static final float LEVEL_TO_HUD_RATIO = (float)Level.VIRTUAL_HEIGHT / HUD_HEIGHT;
+	
+	/** Level Background Sprites **/
+	private Sprite gameBackground;
+	private Sprite hillBackground;
 
 	public WorldView(Level level) {
 		// debug: log fps in console
@@ -65,11 +71,13 @@ public class WorldView implements GestureListener {
 				Level.MAX_VIRTUAL_WIDTH, Level.MAX_VIRTUAL_HEIGHT, camera);
 		batch = new SpriteBatch();
 
-		// initialize level contents
-		//		level.debugInit();
-		level.init();
+		// set up background rendering
 		gameBackground = new Sprite(Assets.getLevelBackground());
 		gameBackground.setSize(Level.VIRTUAL_WIDTH, Level.VIRTUAL_HEIGHT);
+		hillBackground = new Sprite(Assets.getTextureRegion(Assets.LEVEL_BACKGROUND_HILL));
+		TextureRegion hudGround = Assets.getTextureRegion(Assets.LEVEL_HUD_GROUND);
+		hillBackground.setScale(LEVEL_TO_HUD_RATIO);
+		hillBackground.setPosition(162, LEVEL_TO_HUD_RATIO * hudGround.getRegionHeight());
 		
 		// initialize HUD
 		gameHud = new GameHud(level, HUD_WIDTH, HUD_HEIGHT, 
@@ -82,6 +90,18 @@ public class WorldView implements GestureListener {
 		inMultiplexer.addProcessor(gestureDetector);
 		inMultiplexer.addProcessor(gameHud.getStage());
 		Gdx.input.setInputProcessor(inMultiplexer);
+		
+		// initialize level contents
+		//		level.debugInit();
+		level.init();
+	}
+	
+	public float getLevelToHUDRatio() {
+		return (float)Level.VIRTUAL_HEIGHT / HUD_HEIGHT;
+	}
+	
+	public GameHud getGameHUD() {
+		return gameHud;
 	}
 
 	/**
@@ -125,6 +145,8 @@ public class WorldView implements GestureListener {
 		batch.disableBlending();
 		gameBackground.draw(batch);
 		batch.enableBlending();
+		
+		hillBackground.draw(batch);
 		
 		// draw balls
 		drawBalls();

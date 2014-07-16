@@ -70,11 +70,17 @@ Round rules:
 11. frozen ball
 12. Tilt-screen only
 13. Special Ball 
+14. Special Ball - Pick the most colored ball
 
 Business model
 1. Score sharing. Challenge players on social media.
 2. Energy game play time.
 3. Buy extra slot to hold special items (max 3)
+
+JSON data type
+1. Use it for your game configurations instead hard coding in a class. 
+2. Use for mockup database 
+3. Again instead hard coding object attributes (enemies, players) use JSON, it is much tidier, neat and flexible.
 
 
 

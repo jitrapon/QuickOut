@@ -64,10 +64,13 @@ public class Level implements IGameManager {
 
 	/* Ball Type Constants */ 
 	private int currBallType = -1;												// the current type of the ball that will spawned
+
 	public static final int BLUE = 0;
 	public static final int GREEN = 1;
 	public static final int RED = 2;
 	public static final int YELLOW = 3;
+	
+	public static final float GROUND_HEIGHT = 150.0f;
 
 	public enum EntityType {
 		WALL((short)1), BALL((short)2), SPECIAL((short)4);
@@ -127,6 +130,14 @@ public class Level implements IGameManager {
 
 	public int getMaxY() {
 		return VIRTUAL_HEIGHT;
+	}
+	
+	public int getMinX() {
+		return 0;
+	}
+	
+	public int getMinY() {
+		return (int) GROUND_HEIGHT;
 	}
 
 	@Override
@@ -214,7 +225,7 @@ public class Level implements IGameManager {
 		Ball ball = new Ball(animList, BALL_RADIUS, tag);
 		ball.setWorld(this);
 		float posX = getRandomCoordinate(ball.radius, VIRTUAL_WIDTH-ball.radius);
-		float posY = getRandomCoordinate(ball.radius, VIRTUAL_HEIGHT-ball.radius);
+		float posY = getRandomCoordinate(ball.radius + GROUND_HEIGHT, VIRTUAL_HEIGHT-ball.radius);
 		ball.attachPhysicsBody(EntityType.BALL.categoryBits, ball.radius, posX, posY, 1.0f, 1.0f, 1.0f, 1.0f);
 		addBall(ball);
 		return ball;
@@ -245,7 +256,7 @@ public class Level implements IGameManager {
 		Ball ball = new Ball(t, t.getHeight()/2f, tag);
 		ball.setWorld(this);
 		float posX = getRandomCoordinate(ball.radius, VIRTUAL_WIDTH-ball.radius);
-		float posY = getRandomCoordinate(ball.radius, VIRTUAL_HEIGHT-ball.radius);
+		float posY = getRandomCoordinate(ball.radius + GROUND_HEIGHT, VIRTUAL_HEIGHT-ball.radius);
 		ball.attachPhysicsBody(EntityType.BALL.categoryBits, ball.radius, posX, posY, 1.0f, 1.0f, 1.0f, 1.0f);
 		addBall(ball);
 		return ball;
@@ -277,8 +288,8 @@ public class Level implements IGameManager {
 	public void createWallBoundary() {
 		float width = VIRTUAL_WIDTH * WORLD_TO_BOX;
 		float height = VIRTUAL_HEIGHT * WORLD_TO_BOX;
-		Vector2 lowerLeftCorner = new Vector2();
-		Vector2 lowerRightCorner = new Vector2(width, 0);
+		Vector2 lowerLeftCorner = new Vector2(0, GROUND_HEIGHT * WORLD_TO_BOX);
+		Vector2 lowerRightCorner = new Vector2(width, GROUND_HEIGHT * WORLD_TO_BOX);
 		Vector2 upperLeftCorner = new Vector2(0, height);
 		Vector2 upperRightCorner  = new Vector2(width, height);
 
