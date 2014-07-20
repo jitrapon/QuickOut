@@ -68,10 +68,10 @@ public class ItemSlot {
 		if (!isLocked) {
 			slots[fillIndex] = item;
 			size++;
+			size = size > maxSize ? maxSize : size;
 
 			// if full, the next item will replace the one stored in the next slot
 			if (this.isFull()) {
-				size = size > maxSize ? maxSize : size;
 				incrementIndex();
 			}
 
