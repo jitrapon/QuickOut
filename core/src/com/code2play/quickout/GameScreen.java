@@ -31,6 +31,7 @@ public class GameScreen implements Screen {
 		worldView.render(delta);
 		
 		// return to main menu 
+		// release all resources
 		if (Gdx.input.isKeyPressed(Input.Keys.BACK)) {
 			dispose();							// release resources before switching screen
 			game.setScreen(game.mainMenuScreen);
@@ -68,6 +69,7 @@ public class GameScreen implements Screen {
 	public void dispose() {
 		// never called automatically
 		worldView.dispose();
+		level.exitGame();
 	}
 
 }

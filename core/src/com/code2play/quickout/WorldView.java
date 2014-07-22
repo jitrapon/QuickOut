@@ -202,6 +202,7 @@ public class WorldView implements GestureListener {
 	public void dispose() {
 		batch.dispose();
 		gameHud.dispose();
+		Gdx.app.log("DISPOSING", "Released worldview resources");
 	}
 
 	Vector3 touchPos = new Vector3();

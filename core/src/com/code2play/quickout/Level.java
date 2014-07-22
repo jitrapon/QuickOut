@@ -64,12 +64,16 @@ public class Level implements IGameManager {
 
 	/* Ball Type Constants */ 
 	private int currBallType = -1;												// the current type of the ball that will spawned
-
 	public static final int BLUE = 0;
 	public static final int GREEN = 1;
 	public static final int RED = 2;
 	public static final int YELLOW = 3;
 	
+	/* Current ball objective type and action */
+	private int correctBallType = GREEN;
+	private int correctBallMove = Ball.TAPPED;
+	
+	/* Ground height */
 	public static final float GROUND_HEIGHT = 150.0f;
 
 	public enum EntityType {
@@ -401,9 +405,20 @@ public class Level implements IGameManager {
 		}
 
 		//TODO set current level's objective if the timer is up
+		// SET LEVEL's current ball here
+		correctBallType = GREEN;
+		correctBallMove = Ball.FLINGED;
 
 		// update respawn timer
 		spawnTime += delta;
+	}
+	
+	/**
+	 * Returns the correct scorable ball type
+	 * @return
+	 */
+	public int getCorrectBallType() {
+		return correctBallType;
 	}
 
 	/**
@@ -414,8 +429,13 @@ public class Level implements IGameManager {
 	 * @return true if the action is correct, false otherwise
 	 */
 	private boolean validateAction(Ball ball) {
-		Gdx.app.log("ACTION", "Move type: " + ball.state + " on " + ball.getType());
-		return true;
+//		Gdx.app.log("ACTION", "Move type: " + ball.state + " on " + ball.getType());
+		if (correctBallType == ball.tag 
+				&& correctBallMove == ball.state
+				) 
+			return true;
+		else 
+			return false;
 	}
 
 	/**
@@ -486,6 +506,13 @@ public class Level implements IGameManager {
 		}
 
 	}
+	
+	/**
+	 * Release all resources
+	 */
+	private void dispose() {
+		world.dispose();
+	}
 
 	@Override
 	public void saveGame() {
@@ -495,7 +522,7 @@ public class Level implements IGameManager {
 
 	@Override
 	public void exitGame() {
-		// TODO Auto-generated method stub
-		
+		dispose();
+		Gdx.app.log("DISPOSING", "Released level resources");
 	}
 }

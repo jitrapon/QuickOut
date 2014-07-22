@@ -81,6 +81,9 @@ public class GameHud implements IHud {
 		topHud.addActor(cloud5);
 //		topHud.setColor(0, 0, 0, 0.2f);						// set alpha
 		
+		// create level goal indicator
+		//TODO
+		
 		// add all actors to the stage
 		// actors inserted later will be drawn on top of actors added earlier. 
 		// Touch events that hit more than one actor are distributed to topmost actors first.

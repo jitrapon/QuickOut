@@ -117,6 +117,7 @@ public class Assets {
 		textures.clear();
 		textureMap.clear();
 		ballAtlas.dispose();
+		lSceneAtlas.dispose();
 	}
 	
 }
