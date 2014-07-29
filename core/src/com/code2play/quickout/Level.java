@@ -64,14 +64,12 @@ public class Level implements IGameManager {
 
 	/* Ball Type Constants */ 
 	private int currBallType = -1;												// the current type of the ball that will spawned
+	private MoveSet moveSet;
 	public static final int BLUE = 0;
 	public static final int GREEN = 1;
 	public static final int RED = 2;
 	public static final int YELLOW = 3;
-	
-	/* Current ball objective type and action */
-	private int correctBallType = GREEN;
-	private int correctBallMove = Ball.TAPPED;
+	public static final int ANY = 4;
 	
 	/* Ground height */
 	public static final float GROUND_HEIGHT = 150.0f;
@@ -207,6 +205,13 @@ public class Level implements IGameManager {
 		b = spawnBall(anim, (float)(0.27*2*VIRTUAL_WIDTH), 
 				(float)(0.25*VIRTUAL_HEIGHT), -1.0f, currBallType);
 		b.setVelocity(new Vector2(0, vel));
+		
+		moveSet = new MoveSet();
+		moveSet.setMoveset();
+	}
+	
+	public MoveSet getMoveSet() {
+		return moveSet;
 	}
 
 	/**
@@ -362,6 +367,7 @@ public class Level implements IGameManager {
 	Texture texture = null;
 	Ball b = null;
 	Array<Animation> anim = null;
+	float moveChangeTimer = 0.0f;
 	
 	/** Called when the World is to be updated.
 	 * @param delta the time in seconds since the last render. */
@@ -406,38 +412,28 @@ public class Level implements IGameManager {
 
 		//TODO set current level's objective if the timer is up
 		// SET LEVEL's current ball here
-		correctBallType = GREEN;
-		correctBallMove = Ball.FLINGED;
+		if (moveChangeTimer > 3.0f) {
+			moveSet.setMoveset();
+			moveChangeTimer = 0.0f;
+		}
 
 		// update respawn timer
 		spawnTime += delta;
-	}
-	
-	/**
-	 * Returns the correct scorable ball type
-	 * @return
-	 */
-	public int getCorrectBallType() {
-		return correctBallType;
+		moveChangeTimer += delta;
 	}
 
 	/**
 	 * TODO
 	 * Check to validate if the current move done to the ball fits the condition given
-	 * Update the score after
+	 * Update the score a
 	 * @param ball 
 	 * @return true if the action is correct, false otherwise
 	 */
 	private boolean validateAction(Ball ball) {
 //		Gdx.app.log("ACTION", "Move type: " + ball.state + " on " + ball.getType());
-		if (correctBallType == ball.tag 
-				&& correctBallMove == ball.state
-				) 
-			return true;
-		else 
-			return false;
+		return moveSet.validate(ball.tag, ball.state);
 	}
-
+	
 	/**
 	 * Call this method to return a random location within the screen
 	 * Usually for spawning purposes

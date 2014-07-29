@@ -26,6 +26,7 @@ public class GameHud implements IHud {
 	private ScoreLabel score;
 	private LabelStyle style;
 	private BitmapFont font;
+	private AnimatedImage moveIcon;
 	
 	private Image bottomHud;
 	private Group topHud;						
@@ -83,13 +84,21 @@ public class GameHud implements IHud {
 		
 		// create level goal indicator
 		//TODO
+		moveIcon = new AnimatedImage( Assets.animationList.get(Level.BLUE).first() );
+		moveIcon.setSize(75, 75);
+		moveIcon.setPosition( stage.getWidth()/2, stage.getHeight()-100 );
 		
 		// add all actors to the stage
 		// actors inserted later will be drawn on top of actors added earlier. 
 		// Touch events that hit more than one actor are distributed to topmost actors first.
 		stage.addActor(topHud);
 		stage.addActor(score);
+		stage.addActor(moveIcon);
 		stage.addActor(bottomHud);
+	}
+	
+	private void setMoveIcon(Move move) {
+		moveIcon.setAnimation( Assets.animationList.get(move.ballType).first() );
 	}
 	
 	public float getGroundHUDHeight() {
@@ -106,6 +115,7 @@ public class GameHud implements IHud {
 	}
 	
 	public void draw(float delta) {
+		setMoveIcon(level.getMoveSet().getMoves().first());
 	    stage.act(delta);
 	    stage.draw();
 	}
