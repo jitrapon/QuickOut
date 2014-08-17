@@ -14,8 +14,11 @@ OpenSource under Apache License
 Sample object theme: animals and balloons
 
 Gameplay: Objects appear in the screen randomly each level. On the top of the screen, 
-there is a copy of one of the objects onscreen that will appear and vanish. Your goal is to burst the 
-matching objects as many as possible before the copy changes.
+there is a copy of one of the objects onscreen that will appear and vanish. Your goal is to burst the matching objects (in queue, or as many as possible before it changes). Burst a number of objects to end the round.
+
+Points will be scored based on how fast you burst them, the time left after the round ends, and the maximum combos you have achieved.
+
+Balls will keep spawning until they reach a certain maximum number, after which all of them will disappear and player will lose points (or current number of balls bursted).
 
 Burst objects that match what the top says to score points.
 Points will be deducted if you burst the wrong object, or input the wrong action.

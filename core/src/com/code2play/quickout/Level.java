@@ -47,13 +47,14 @@ public class Level implements IGameManager {
 	/* This level's constants */
 	public boolean gravityEnabled = true;
 	private static final float BALL_RADIUS = 75.0f;
-	private static final int MAX_NUM_OBJECT_ONSCREEN = 17;						// maximum number of spawnable objects onscreen at this level
+	private static final int MAX_NUM_OBJECT_ONSCREEN = 24;						// maximum number of spawnable objects onscreen at this level
 	public static final int VIRTUAL_WIDTH = 900;								// the screen width in world's coordinate
 	public static final int VIRTUAL_HEIGHT = 1600;								// the screen height in world's coordinate
 	public static final int MAX_VIRTUAL_WIDTH = 1200;
 	public static final int MAX_VIRTUAL_HEIGHT = 1600;
 	private static final float MAX_SPEED = 20.0f;								// the maximum speed of any ball
-	private static final float RESPAWN_TIME = 0.50f;							// time in seconds before the next respawn
+	private static final float RESPAWN_TIME = 0.25f;							// time in seconds before the next respawn
+	private static final float MOVE_CHANGE_TIME = 6.5f;							// if used, indicates the time in seconds before the next moveset is changed
 	public boolean spawnMoreBalls = true;										// indicates whether to continue spawning more balls
 
 	/* Some variables */
@@ -180,31 +181,31 @@ public class Level implements IGameManager {
 		createWallBoundary();
 
 		//		float vel = 1.1f; // min
-		float vel = 3.5f;
-		Array<Animation> anim = getNextAnimationSet();
-		Ball b = spawnBall(anim, (float)(0.27*1*VIRTUAL_WIDTH), 
-				(float)(0.5*VIRTUAL_HEIGHT), -1.0f, currBallType);
-		b.setVelocity(new Vector2(vel, 0));
-
-		anim = getNextAnimationSet();
-		b = spawnBall(anim, (float)(0.27*2*VIRTUAL_WIDTH), 
-				(float)(0.5*VIRTUAL_HEIGHT), -1.0f, currBallType);
-		b.setVelocity(new Vector2(0, 0));
-
-		anim = getNextAnimationSet();
-		b = spawnBall(anim, (float)(0.27*3*VIRTUAL_WIDTH), 
-				(float)(0.5*VIRTUAL_HEIGHT), -1.0f, currBallType);
-		b.setVelocity(new Vector2(vel*-1, 0));
-
-		anim = getNextAnimationSet();
-		b = spawnBall(anim, (float)(0.27*2*VIRTUAL_WIDTH), 
-				(float)(0.75*VIRTUAL_HEIGHT), -1.0f, currBallType);
-		b.setVelocity(new Vector2(0, vel*-1));
-
-		anim = getNextAnimationSet();
-		b = spawnBall(anim, (float)(0.27*2*VIRTUAL_WIDTH), 
-				(float)(0.25*VIRTUAL_HEIGHT), -1.0f, currBallType);
-		b.setVelocity(new Vector2(0, vel));
+//		float vel = 3.5f;
+//		Array<Animation> anim = getNextAnimationSet();
+//		Ball b = spawnBall(anim, (float)(0.27*1*VIRTUAL_WIDTH), 
+//				(float)(0.5*VIRTUAL_HEIGHT), -1.0f, currBallType);
+//		b.setVelocity(new Vector2(vel, 0));
+//
+//		anim = getNextAnimationSet();
+//		b = spawnBall(anim, (float)(0.27*2*VIRTUAL_WIDTH), 
+//				(float)(0.5*VIRTUAL_HEIGHT), -1.0f, currBallType);
+//		b.setVelocity(new Vector2(0, 0));
+//
+//		anim = getNextAnimationSet();
+//		b = spawnBall(anim, (float)(0.27*3*VIRTUAL_WIDTH), 
+//				(float)(0.5*VIRTUAL_HEIGHT), -1.0f, currBallType);
+//		b.setVelocity(new Vector2(vel*-1, 0));
+//
+//		anim = getNextAnimationSet();
+//		b = spawnBall(anim, (float)(0.27*2*VIRTUAL_WIDTH), 
+//				(float)(0.75*VIRTUAL_HEIGHT), -1.0f, currBallType);
+//		b.setVelocity(new Vector2(0, vel*-1));
+//
+//		anim = getNextAnimationSet();
+//		b = spawnBall(anim, (float)(0.27*2*VIRTUAL_WIDTH), 
+//				(float)(0.25*VIRTUAL_HEIGHT), -1.0f, currBallType);
+//		b.setVelocity(new Vector2(0, vel));
 		
 		moveSet = new MoveSet();
 		moveSet.setMoveset();
@@ -412,7 +413,10 @@ public class Level implements IGameManager {
 
 		//TODO set current level's objective if the timer is up
 		// SET LEVEL's current ball here
-		if (moveChangeTimer > 3.0f) {
+		if (
+				moveChangeTimer > MOVE_CHANGE_TIME ||
+				true
+				) {
 			moveSet.setMoveset();
 			moveChangeTimer = 0.0f;
 		}

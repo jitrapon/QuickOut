@@ -8,6 +8,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.code2play.game.IHud;
 
@@ -26,10 +27,15 @@ public class GameHud implements IHud {
 	private ScoreLabel score;
 	private LabelStyle style;
 	private BitmapFont font;
-	private AnimatedImage moveIcon;
+	private Group moveIconGroup;
+	private AnimatedImage moveIcon1;
+	private AnimatedImage moveIcon2;
+	private AnimatedImage moveIcon3;
 	
 	private Image bottomHud;
 	private Group topHud;						
+	
+	private float moveIconSize = 75.0f;
 	
 	/**
 	 * Creates the HUD with a specified coordinates
@@ -84,21 +90,75 @@ public class GameHud implements IHud {
 		
 		// create level goal indicator
 		//TODO
-		moveIcon = new AnimatedImage( Assets.animationList.get(Level.BLUE).first() );
-		moveIcon.setSize(75, 75);
-		moveIcon.setPosition( stage.getWidth()/2, stage.getHeight()-100 );
+		moveIconGroup = new Group();
+		moveIcon1 = new AnimatedImage( Assets.animationList.get(Level.BLUE).first() );
+		moveIcon1.setSize(moveIconSize, moveIconSize);
+		moveIcon1.setPosition( stage.getWidth()/2 - moveIconSize/2, stage.getHeight()-100 );
+		moveIcon2 = new AnimatedImage( Assets.animationList.get(Level.GREEN).first() );
+		moveIcon2.setSize(moveIconSize, moveIconSize);
+		moveIcon2.setPosition( stage.getWidth()/2 - moveIconSize/2, stage.getHeight()-100 );
+		moveIcon2.setVisible(false);
+		moveIcon3 = new AnimatedImage( Assets.animationList.get(Level.RED).first() );
+		moveIcon3.setSize(moveIconSize, moveIconSize);
+		moveIcon3.setPosition( stage.getWidth()/2 - moveIconSize/2, stage.getHeight()-100 );
+		moveIcon3.setVisible(false);
+		
+		moveIconGroup.addActor(moveIcon1);
+		moveIconGroup.addActor(moveIcon2);
+		moveIconGroup.addActor(moveIcon3);
 		
 		// add all actors to the stage
 		// actors inserted later will be drawn on top of actors added earlier. 
 		// Touch events that hit more than one actor are distributed to topmost actors first.
 		stage.addActor(topHud);
 		stage.addActor(score);
-		stage.addActor(moveIcon);
+		stage.addActor(moveIconGroup);
 		stage.addActor(bottomHud);
 	}
 	
-	private void setMoveIcon(Move move) {
-		moveIcon.setAnimation( Assets.animationList.get(move.ballType).first() );
+	/**
+	 * Displays move icons according to the moveset
+	 * TODO display array correctly
+	 * @param move
+	 */
+	private void setMoveIcon(Array<Move> moves) {
+		switch (moves.size) {
+		case 1:
+			moveIcon1.setAnimation(Assets.animationList.get(moves.first().ballType).first());
+			moveIcon1.setPosition(stage.getWidth()/2 - moveIconSize/2, stage.getHeight()-100);
+			
+			moveIcon2.setVisible(false);
+			
+			moveIcon3.setVisible(false);
+			break;
+		case 2:
+			moveIcon1.setAnimation(Assets.animationList.get(moves.first().ballType).first());
+			moveIcon1.setPosition(stage.getWidth()/2 - moveIconSize, stage.getHeight()-100);
+			
+			moveIcon2.setAnimation(Assets.animationList.get(moves.get(1).ballType).first());
+			moveIcon2.setPosition(stage.getWidth()/2, stage.getHeight()-100);
+			moveIcon2.setVisible(true);
+			
+			moveIcon3.setVisible(false);
+			break;
+			
+		case 3:
+			moveIcon1.setAnimation(Assets.animationList.get(moves.first().ballType).first());
+			moveIcon1.setPosition(stage.getWidth()/2 - moveIconSize, stage.getHeight()-100);
+			
+			moveIcon2.setAnimation(Assets.animationList.get(moves.get(1).ballType).first());
+			moveIcon2.setPosition(stage.getWidth()/2 - moveIconSize/3, stage.getHeight()-100);
+			moveIcon2.setVisible(true);
+			
+			moveIcon3.setAnimation(Assets.animationList.get(moves.get(2).ballType).first());
+			moveIcon3.setPosition(stage.getWidth()/2, stage.getHeight()-100);
+			moveIcon3.setVisible(true);
+			break;
+			
+		default:
+			
+			break;
+		}
 	}
 	
 	public float getGroundHUDHeight() {
@@ -115,7 +175,7 @@ public class GameHud implements IHud {
 	}
 	
 	public void draw(float delta) {
-		setMoveIcon(level.getMoveSet().getMoves().first());
+		setMoveIcon(level.getMoveSet().getMoves());
 	    stage.act(delta);
 	    stage.draw();
 	}

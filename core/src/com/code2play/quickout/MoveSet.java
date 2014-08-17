@@ -19,10 +19,13 @@ public class MoveSet {
 	private Array<Move> moves;
 
 	/** Maximum number of ball types in a moveset **/
-	private static final int MAX_SIZE = 3;
+	private static final int MAX_SIZE = 1;
 
 	/** Current index to be validated **/
 	private int index;
+	
+	/** Indicates whether the currently displayed move is validated to be correct **/
+	private boolean correct;
 
 
 	public MoveSet() {
@@ -35,6 +38,7 @@ public class MoveSet {
 		} );
 		moves = new Array<Move>(MAX_SIZE);
 		index = 0;
+		correct = true;
 	}
 	
 	public boolean validate(int ballTag, int ballState) {
@@ -63,6 +67,7 @@ public class MoveSet {
 		if (correctMove)
 			index = index+1 >= moves.size ? 0 : index+1;
 
+		correct = correctMove;
 		return correctMove;
 	}
 
@@ -86,14 +91,16 @@ public class MoveSet {
 	}
 	
 	public void setMoveset() {
-		moves.clear();
-		
-		moves.add( new Move(ballTypes.random(), MoveType.TAP, false) );
-		
-//		moves.add( new Move(Level.BLUE, MoveType.TAP, false) );
-//		moves.add( new Move(Level.YELLOW, MoveType.TAP, false) );
+		if (correct) {
+			moves.clear();
 
-		index = 0;
+			for (int i = 0; i < MAX_SIZE; i++) {
+				moves.add( new Move(ballTypes.random(), MoveType.TAP, false) );
+			} 
+
+			index = 0;
+			correct = false;
+		}
 	}
 
 	public Array<Move> getMoves() {
