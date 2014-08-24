@@ -17,6 +17,9 @@ public class MoveSet {
 	
 	/** Currently correct move(s) **/
 	private Array<Move> moves;
+	
+	/** Next correct move(s) **/
+	private Array<Move> nextMoves;
 
 	/** Maximum number of ball types in a moveset **/
 	private static final int MAX_SIZE = 1;
@@ -26,6 +29,9 @@ public class MoveSet {
 	
 	/** Indicates whether the currently displayed move is validated to be correct **/
 	private boolean correct;
+	
+	/** Indicates whether move icons need to be redrawn **/
+	private boolean redraw;
 
 
 	public MoveSet() {
@@ -37,8 +43,10 @@ public class MoveSet {
 //				Level.ANY
 		} );
 		moves = new Array<Move>(MAX_SIZE);
+		nextMoves = new Array<Move>(MAX_SIZE);
 		index = 0;
 		correct = true;
+		redraw = true;
 	}
 	
 	public boolean validate(int ballTag, int ballState) {
@@ -95,15 +103,42 @@ public class MoveSet {
 			moves.clear();
 
 			for (int i = 0; i < MAX_SIZE; i++) {
-				moves.add( new Move(ballTypes.random(), MoveType.TAP, false) );
+				if (nextMoves.size == 0) 
+					moves.add( new Move(ballTypes.random(), MoveType.TAP, false) );
+				else
+					moves.add(nextMoves.get(i));
 			} 
-
 			index = 0;
+			setNextMoveSet();
 			correct = false;
+			redraw = true;							// need this because cannot call GameHud functions here, 
+													// since it is not initialized yet on the first call
+		}
+	}
+	
+	private void setNextMoveSet() {
+		if (correct) {
+			nextMoves.clear();
+			
+			for (int i = 0; i < MAX_SIZE; i++) {
+				nextMoves.add( new Move(ballTypes.get(Level.RED), MoveType.TAP, false) );
+			}
 		}
 	}
 
 	public Array<Move> getMoves() {
 		return moves;
+	}
+	
+	public Array<Move> getNextMoves() {
+		return nextMoves;
+	}
+	
+	public boolean needRedrawing() {
+		return redraw;
+	}
+	
+	public void doneRedrawing() {
+		redraw = false;
 	}
 }

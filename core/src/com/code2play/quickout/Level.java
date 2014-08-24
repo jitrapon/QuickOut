@@ -47,7 +47,7 @@ public class Level implements IGameManager {
 	/* This level's constants */
 	public boolean gravityEnabled = true;
 	private static final float BALL_RADIUS = 75.0f;
-	private static final int MAX_NUM_OBJECT_ONSCREEN = 24;						// maximum number of spawnable objects onscreen at this level
+	private static final int MAX_NUM_OBJECT_ONSCREEN = 17;						// maximum number of spawnable objects onscreen at this level
 	public static final int VIRTUAL_WIDTH = 900;								// the screen width in world's coordinate
 	public static final int VIRTUAL_HEIGHT = 1600;								// the screen height in world's coordinate
 	public static final int MAX_VIRTUAL_WIDTH = 1200;
@@ -59,6 +59,7 @@ public class Level implements IGameManager {
 
 	/* Some variables */
 	private int score = 0;														// current level's SCORE !!!
+	private int ballCount = 0;													// current level's ball collected!!!
 	private float spawnTime = 0.0f;												// keep tracks of current time in seconds (for next respawn)
 	private Array<Ball> balls;													// contains the list of balls onscreen at this level
 	private Body groundBody;													// used as anchor for mousejoint only
@@ -103,6 +104,10 @@ public class Level implements IGameManager {
 	
 	public int getScore() {
 		return score;
+	}
+	
+	public int getBallCount() {
+		return ballCount;
 	}
 
 	/**
@@ -393,10 +398,14 @@ public class Level implements IGameManager {
 				if (!ball.hasCollidedCorrectly) {
 					if (validateAction(ball)) {
 						score += 100;
+						ballCount+=1;											// use 1 because it is a variable!
 					}
 				}
+				
+				// on correct collision
 				else {
 					score += 250;
+					ballCount+=1;												// use 1 because it is a variable!
 				}
 			}
 		}

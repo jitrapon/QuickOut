@@ -5,12 +5,12 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.code2play.game.IHud;
+import static com.badlogic.gdx.scenes.scene2d.actions.Actions.*;
 
 
 /**
@@ -24,18 +24,30 @@ public class GameHud implements IHud {
 	private Level level;
 	
 	private Stage stage;
-	private ScoreLabel score;
-	private LabelStyle style;
-	private BitmapFont font;
+	
+	private ScoreLabel score;										// displays current game level score
+	private LabelStyle scoreStyle;
+	private BitmapFont scoreFont;
+	
+	private CounterLabel counter;
+	private BitmapFont countFont;
+	private LabelStyle countStyle;
+	
 	private Group moveIconGroup;
 	private AnimatedImage moveIcon1;
 	private AnimatedImage moveIcon2;
 	private AnimatedImage moveIcon3;
 	
+	private AnimatedImage nextMoveIcon1;
+	private AnimatedImage nextMoveIcon2;
+	private AnimatedImage nextMoveIcon3;
+	
 	private Image bottomHud;
 	private Group topHud;						
 	
 	private float moveIconSize = 75.0f;
+	private float nextMoveIconSize = 50.0f;
+	
 	
 	/**
 	 * Creates the HUD with a specified coordinates
@@ -52,12 +64,20 @@ public class GameHud implements IHud {
 	
 	private void fillContent() {
 		// create a score label
-		font = new BitmapFont();
-		font.scale(1.7f);
-		style = new LabelStyle(font, Color.WHITE);
+		scoreFont = new BitmapFont();
+		scoreFont.scale(1.7f);
+		scoreStyle = new LabelStyle(scoreFont, Color.WHITE);
 		
-		score = new ScoreLabel(level, "undefined", style);
-		score.setPosition(stage.getWidth()-100, stage.getHeight()-50);
+		score = new ScoreLabel(level, "undefined", scoreStyle);
+		score.setPosition(stage.getWidth()-100, stage.getHeight()-130);
+		
+		// create ball count label
+		countFont = new BitmapFont();
+		countFont.scale(2.5f);
+		countStyle = new LabelStyle(countFont, Color.WHITE);
+		
+		counter = new CounterLabel(level, "0", countStyle);
+		counter.setPosition(stage.getWidth()-100, stage.getHeight()-70);
 		
 		// create ground HUD
 		bottomHud = new Image(Assets.getTextureRegion(Assets.LEVEL_HUD_GROUND));
@@ -76,11 +96,11 @@ public class GameHud implements IHud {
 		cloud3.setPosition(stage.getWidth()+10, stage.getHeight() - 180);
 		cloud4.setPosition(stage.getWidth()+30, stage.getHeight() - 180);
 		cloud5.setPosition(stage.getWidth()+15, stage.getHeight() - 180);
-		cloud1.addAction(Actions.moveTo(-500, stage.getHeight() - 180, 60.0f, Interpolation.linear));
-		cloud2.addAction(Actions.moveTo(-500, stage.getHeight() - 180, 90.0f, Interpolation.linear));
-		cloud3.addAction(Actions.moveTo(-500, stage.getHeight() - 180, 120.0f, Interpolation.linear));
-		cloud4.addAction(Actions.moveTo(-500, stage.getHeight() - 180, 85.0f, Interpolation.linear));
-		cloud5.addAction(Actions.moveTo(-500, stage.getHeight() - 180, 150.0f, Interpolation.linear));
+		cloud1.addAction(moveTo(-500, stage.getHeight() - 180, 60.0f, Interpolation.linear));
+		cloud2.addAction(moveTo(-500, stage.getHeight() - 180, 90.0f, Interpolation.linear));
+		cloud3.addAction(moveTo(-500, stage.getHeight() - 180, 120.0f, Interpolation.linear));
+		cloud4.addAction(moveTo(-500, stage.getHeight() - 180, 85.0f, Interpolation.linear));
+		cloud5.addAction(moveTo(-500, stage.getHeight() - 180, 150.0f, Interpolation.linear));
 		topHud.addActor(cloud1);
 		topHud.addActor(cloud2);
 		topHud.addActor(cloud3);
@@ -103,14 +123,32 @@ public class GameHud implements IHud {
 		moveIcon3.setPosition( stage.getWidth()/2 - moveIconSize/2, stage.getHeight()-100 );
 		moveIcon3.setVisible(false);
 		
+		nextMoveIcon1 = new AnimatedImage( Assets.animationList.get(Level.BLUE).first() );
+		nextMoveIcon1.setSize(nextMoveIconSize, nextMoveIconSize);
+		nextMoveIcon1.setPosition( stage.getWidth()/2 + moveIconSize/2, stage.getHeight()-100 );
+		nextMoveIcon2 = new AnimatedImage( Assets.animationList.get(Level.GREEN).first() );
+		nextMoveIcon2.setSize(nextMoveIconSize, nextMoveIconSize);
+		nextMoveIcon2.setPosition( stage.getWidth()/2 + moveIconSize/2 + 10, stage.getHeight()-100 );
+		nextMoveIcon2.setVisible(false);
+		nextMoveIcon3 = new AnimatedImage( Assets.animationList.get(Level.RED).first() );
+		nextMoveIcon3.setSize(nextMoveIconSize, nextMoveIconSize);
+		nextMoveIcon3.setPosition( stage.getWidth()/2 + moveIconSize/2 + 20, stage.getHeight()-100 );
+		nextMoveIcon3.setVisible(false);
+		
+		moveIconGroup.addActor(nextMoveIcon1);
+		moveIconGroup.addActor(nextMoveIcon2);
+		moveIconGroup.addActor(nextMoveIcon3);
+		
 		moveIconGroup.addActor(moveIcon1);
 		moveIconGroup.addActor(moveIcon2);
 		moveIconGroup.addActor(moveIcon3);
+		
 		
 		// add all actors to the stage
 		// actors inserted later will be drawn on top of actors added earlier. 
 		// Touch events that hit more than one actor are distributed to topmost actors first.
 		stage.addActor(topHud);
+		stage.addActor(counter);
 		stage.addActor(score);
 		stage.addActor(moveIconGroup);
 		stage.addActor(bottomHud);
@@ -121,15 +159,31 @@ public class GameHud implements IHud {
 	 * TODO display array correctly
 	 * @param move
 	 */
-	private void setMoveIcon(Array<Move> moves) {
+	private void setMoveIcon(Array<Move> moves, Array<Move> nextMoves) {
+		
 		switch (moves.size) {
 		case 1:
+			// set current moveset
 			moveIcon1.setAnimation(Assets.animationList.get(moves.first().ballType).first());
-			moveIcon1.setPosition(stage.getWidth()/2 - moveIconSize/2, stage.getHeight()-100);
+			moveIcon1.setPosition(stage.getWidth()/2 + moveIconSize/2, stage.getHeight()-100);
+			moveIcon1.setSize(nextMoveIconSize, nextMoveIconSize);
+			moveIcon1.addAction(sequence(
+					scaleTo(nextMoveIconSize/moveIconSize, nextMoveIconSize/moveIconSize),
+					parallel(
+					moveTo(stage.getWidth()/2 - moveIconSize/2, stage.getHeight()-100, 0.15f, Interpolation.linear),
+					scaleTo(moveIconSize/nextMoveIconSize, moveIconSize/nextMoveIconSize, 0.15f, Interpolation.linear)
+					)));//TODO won't scale back
+			
+			
+			// set next moveset
+			nextMoveIcon1.setAnimation(Assets.animationList.get(nextMoves.first().ballType).first());
+			nextMoveIcon1.setPosition(stage.getWidth()/2 + moveIconSize/2, stage.getHeight()-100);
 			
 			moveIcon2.setVisible(false);
+			nextMoveIcon2.setVisible(false);
 			
 			moveIcon3.setVisible(false);
+			nextMoveIcon3.setVisible(false);
 			break;
 		case 2:
 			moveIcon1.setAnimation(Assets.animationList.get(moves.first().ballType).first());
@@ -159,6 +213,8 @@ public class GameHud implements IHud {
 			
 			break;
 		}
+		
+		level.getMoveSet().doneRedrawing();
 	}
 	
 	public float getGroundHUDHeight() {
@@ -175,12 +231,15 @@ public class GameHud implements IHud {
 	}
 	
 	public void draw(float delta) {
-		setMoveIcon(level.getMoveSet().getMoves());
+		if (level.getMoveSet().needRedrawing()) 
+			setMoveIcon(level.getMoveSet().getMoves(), level.getMoveSet().getNextMoves());
 	    stage.act(delta);
 	    stage.draw();
 	}
 	
 	public void dispose() {
+		scoreFont.dispose();
+		countFont.dispose();
 		stage.dispose();
 	}
 	

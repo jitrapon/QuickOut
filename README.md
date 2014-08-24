@@ -24,6 +24,13 @@ Burst objects that match what the top says to score points.
 Points will be deducted if you burst the wrong object, or input the wrong action.
 To make the game more challenging, there are different actions available.
 
+Onscreen HUD:
+1. Balls collected
+2. Score
+3. Time indicator
+4. Combo gauge
+5. Individual ball score
+
 Action list:
 
 0. Description  (action-name)
