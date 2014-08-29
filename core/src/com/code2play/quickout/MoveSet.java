@@ -98,8 +98,8 @@ public class MoveSet {
 		}
 	}
 	
-	public void setMoveset() {
-		if (correct) {
+	public void setMoveset(boolean forceChange) {
+		if (correct || forceChange) {
 			moves.clear();
 
 			for (int i = 0; i < MAX_SIZE; i++) {
@@ -109,19 +109,23 @@ public class MoveSet {
 					moves.add(nextMoves.get(i));
 			} 
 			index = 0;
-			setNextMoveSet();
+			setNextMoveSet(forceChange);
 			correct = false;
 			redraw = true;							// need this because cannot call GameHud functions here, 
 													// since it is not initialized yet on the first call
 		}
 	}
 	
-	private void setNextMoveSet() {
-		if (correct) {
+	public boolean isCorrect() {
+		return correct;
+	}
+	
+	private void setNextMoveSet(boolean forceChange) {
+		if (correct || forceChange) {
 			nextMoves.clear();
 			
 			for (int i = 0; i < MAX_SIZE; i++) {
-				nextMoves.add( new Move(ballTypes.get(Level.RED), MoveType.TAP, false) );
+				nextMoves.add( new Move(ballTypes.random(), MoveType.TAP, false) );
 			}
 		}
 	}

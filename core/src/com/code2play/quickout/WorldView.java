@@ -44,16 +44,16 @@ public class WorldView implements GestureListener {
 
 	/** our mouse joint **/
 	protected MouseJoint mouseJoint = null;
-	
+
 	/** Game HUD, the game hud is an abstract representation of the Scene2D stage **/
 	private GameHud gameHud;	
 	private static final int HUD_WIDTH = 576;
 	private static final int HUD_HEIGHT = 1024;
 	private static final int MAX_HUD_WIDTH = 768;
 	private static final int MAX_HUD_HEIGHT = 1024;
-	
+
 	public static final float LEVEL_TO_HUD_RATIO = (float)Level.VIRTUAL_HEIGHT / HUD_HEIGHT;
-	
+
 	/** Level Background Sprites **/
 	private Sprite gameBackground;
 	private Sprite hillBackground;
@@ -78,7 +78,7 @@ public class WorldView implements GestureListener {
 		TextureRegion hudGround = Assets.getTextureRegion(Assets.LEVEL_HUD_GROUND);
 		hillBackground.setScale(LEVEL_TO_HUD_RATIO);
 		hillBackground.setPosition(162, LEVEL_TO_HUD_RATIO * hudGround.getRegionHeight());
-		
+
 		// initialize HUD
 		gameHud = new GameHud(level, HUD_WIDTH, HUD_HEIGHT, 
 				MAX_HUD_WIDTH, MAX_HUD_HEIGHT);
@@ -90,16 +90,16 @@ public class WorldView implements GestureListener {
 		inMultiplexer.addProcessor(gestureDetector);
 		inMultiplexer.addProcessor(gameHud.getStage());
 		Gdx.input.setInputProcessor(inMultiplexer);
-		
+
 		// initialize level contents
 		//		level.debugInit();
 		level.init();
 	}
-	
+
 	public float getLevelToHUDRatio() {
 		return (float)Level.VIRTUAL_HEIGHT / HUD_HEIGHT;
 	}
-	
+
 	public GameHud getGameHUD() {
 		return gameHud;
 	}
@@ -120,7 +120,7 @@ public class WorldView implements GestureListener {
 	 * */
 	public void render(float delta) {
 		// debug fps log
-				fpsLogger.log();
+		fpsLogger.log();
 
 		// clear the screen with a dark blue color. The
 		// arguments to glClearColor are the red, green
@@ -145,17 +145,17 @@ public class WorldView implements GestureListener {
 		batch.disableBlending();
 		gameBackground.draw(batch);
 		batch.enableBlending();
-		
+
 		hillBackground.draw(batch);
-		
+
 		// draw balls
 		drawBalls();
-		
+
 		/********************************
 		 * END GAME ENTITIES DRAWING
 		 *******************************/
 		batch.end();
-		
+
 		// draw game HUD
 		gameHud.draw(delta);
 
@@ -194,8 +194,14 @@ public class WorldView implements GestureListener {
 		Iterator<Ball> iter = level.getBalls().iterator();
 		while (iter.hasNext()) {
 			Ball ball = iter.next();
-			batch.draw(ball.getCurrentAnimation().getKeyFrame(ball.stateTime), 
-					ball.x - ball.radius, ball.y - ball.radius, ball.radius*2, ball.radius*2);
+			if (ball.removed) {
+				//TODO draw burst animation
+				iter.remove();
+			}
+			else {
+				batch.draw(ball.getCurrentAnimation().getKeyFrame(ball.stateTime), 
+						ball.x - ball.radius, ball.y - ball.radius, ball.radius*2, ball.radius*2);
+			}
 		}
 	}
 

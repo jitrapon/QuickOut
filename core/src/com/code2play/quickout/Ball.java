@@ -24,6 +24,7 @@ public class Ball extends Entity {
 	public String type;									// representation of the ball's type
 	public int tag;
 	public boolean hasCollidedCorrectly = false;		// whether of not the ball is correctly collided of the specified type
+	public int score;									// point of this ball if it were to be removed
 	
 	/* Animations */
 	private Array<Animation> animList;
@@ -43,6 +44,7 @@ public class Ball extends Entity {
 		//		velocity = new Vector2(0, 0);
 		mass = 1;
 		this.radius = radius;
+		score = 0;
 	}
 	
 	public Ball(Array<Animation> animList, float radius, int tag) {
@@ -52,6 +54,7 @@ public class Ball extends Entity {
 		mass = 1;
 		this.radius = radius;
 		currAnim = animList.first();
+		score = 0;
 	}
 	
 	public Animation getCurrentAnimation() {

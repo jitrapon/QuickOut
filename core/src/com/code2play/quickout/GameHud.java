@@ -1,16 +1,25 @@
 package com.code2play.quickout;
 
+import static com.badlogic.gdx.scenes.scene2d.actions.Actions.moveTo;
+import static com.badlogic.gdx.scenes.scene2d.actions.Actions.parallel;
+import static com.badlogic.gdx.scenes.scene2d.actions.Actions.scaleTo;
+import static com.badlogic.gdx.scenes.scene2d.actions.Actions.sequence;
+
+import java.util.Iterator;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.Interpolation;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.code2play.game.IHud;
-import static com.badlogic.gdx.scenes.scene2d.actions.Actions.*;
+import com.code2play.quickout.Level.ScoreIndicator;
 
 
 /**
@@ -41,6 +50,10 @@ public class GameHud implements IHud {
 	private AnimatedImage nextMoveIcon1;
 	private AnimatedImage nextMoveIcon2;
 	private AnimatedImage nextMoveIcon3;
+	
+	private Group scoreEffectGroup;
+	private LabelStyle style;
+	private BitmapFont font;
 	
 	private Image bottomHud;
 	private Group topHud;						
@@ -143,6 +156,11 @@ public class GameHud implements IHud {
 		moveIconGroup.addActor(moveIcon2);
 		moveIconGroup.addActor(moveIcon3);
 		
+		// score indicators
+		scoreEffectGroup = new Group();
+		font = new BitmapFont();
+		font.scale(1.5f);
+		style = new LabelStyle(font, Color.ORANGE);
 		
 		// add all actors to the stage
 		// actors inserted later will be drawn on top of actors added earlier. 
@@ -151,7 +169,17 @@ public class GameHud implements IHud {
 		stage.addActor(counter);
 		stage.addActor(score);
 		stage.addActor(moveIconGroup);
+		stage.addActor(scoreEffectGroup);
 		stage.addActor(bottomHud);
+	}
+	
+	private void setScoreIndicators(Array<ScoreIndicator> scores) {
+		Iterator<ScoreIndicator> iter = scores.iterator();
+		while(iter.hasNext()) {
+			ScoreIndicator score = iter.next();
+			scoreEffectGroup.addActor(new ScoreEffectLabel(stage, score, style));
+			iter.remove();
+		}
 	}
 	
 	/**
@@ -165,7 +193,7 @@ public class GameHud implements IHud {
 		case 1:
 			// set current moveset
 			moveIcon1.setAnimation(Assets.animationList.get(moves.first().ballType).first());
-			moveIcon1.setPosition(stage.getWidth()/2 + moveIconSize/2, stage.getHeight()-100);
+			moveIcon1.setPosition(stage.getWidth()/2 + moveIconSize/4, stage.getHeight()-100.0f + nextMoveIconSize/4);
 			moveIcon1.setSize(nextMoveIconSize, nextMoveIconSize);
 			moveIcon1.addAction(sequence(
 					scaleTo(nextMoveIconSize/moveIconSize, nextMoveIconSize/moveIconSize),
@@ -177,7 +205,7 @@ public class GameHud implements IHud {
 			
 			// set next moveset
 			nextMoveIcon1.setAnimation(Assets.animationList.get(nextMoves.first().ballType).first());
-			nextMoveIcon1.setPosition(stage.getWidth()/2 + moveIconSize/2, stage.getHeight()-100);
+			nextMoveIcon1.setPosition(stage.getWidth()/2 + moveIconSize/4, stage.getHeight()-100.0f + nextMoveIconSize/4);
 			
 			moveIcon2.setVisible(false);
 			nextMoveIcon2.setVisible(false);
@@ -231,13 +259,26 @@ public class GameHud implements IHud {
 	}
 	
 	public void draw(float delta) {
+		//  draw move icons
 		if (level.getMoveSet().needRedrawing()) 
 			setMoveIcon(level.getMoveSet().getMoves(), level.getMoveSet().getNextMoves());
+		
+		// update score indicators
+		setScoreIndicators(level.getScoreIndicators());
+		
+		for (Actor label : scoreEffectGroup.getChildren()) {
+			if (label.getActions().size == 0) {
+				scoreEffectGroup.removeActor(label);
+			}
+		}
+		
+		// stage update
 	    stage.act(delta);
 	    stage.draw();
 	}
 	
 	public void dispose() {
+		font.dispose();
 		scoreFont.dispose();
 		countFont.dispose();
 		stage.dispose();
