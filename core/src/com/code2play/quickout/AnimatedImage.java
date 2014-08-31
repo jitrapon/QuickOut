@@ -31,6 +31,21 @@ public class AnimatedImage extends Image {
 		}
 	}
 	
+	public void setAnimation(Animation animation, float stateTime) {
+		if (this.animation != animation) {
+			this.animation = animation;
+			this.stateTime = stateTime;
+		}
+	}
+	
+	public Animation getAnimation() {
+		return animation;
+	}
+	
+	public float getStateTime() {
+		return stateTime;
+	}
+	
 	@Override
 	public void act(float delta) {
 		((TextureRegionDrawable)getDrawable()).setRegion(animation.getKeyFrame(stateTime+=delta, true));

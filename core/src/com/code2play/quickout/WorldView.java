@@ -118,6 +118,11 @@ public class WorldView implements GestureListener {
 	/** Called when the view should be rendered.
 	 * @param delta the time in seconds since the last render. 
 	 * */
+	float brightness = 1.0f;
+	float time = 0.0f;
+	float deltaIncr = 0.001f;
+	float deltaTime = Level.MAX_LEVEL_TIME / (1.0f/deltaIncr);
+	boolean switchTime = false;
 	public void render(float delta) {
 		// debug fps log
 		fpsLogger.log();
@@ -143,6 +148,16 @@ public class WorldView implements GestureListener {
 		 *******************************/
 		// draw background
 		batch.disableBlending();
+		time+=delta;
+		if (time > deltaTime) {
+			if (brightness > 1f) switchTime = false;
+			else if (brightness < 0.2f) switchTime = true;
+			
+			if (switchTime) brightness += deltaIncr;
+			else brightness -= deltaIncr;
+			time = 0.0f;
+		}
+		gameBackground.setColor(brightness, brightness, brightness, 1.0f);
 		gameBackground.draw(batch);
 		batch.enableBlending();
 
@@ -195,6 +210,10 @@ public class WorldView implements GestureListener {
 		while (iter.hasNext()) {
 			Ball ball = iter.next();
 			if (ball.removed) {
+				// play sound effect
+				if (ball.correctMove || ball.hasCollidedCorrectly) Assets.getCorrectBallPlopSoundEffect().play();
+				else Assets.getWrongBallPlopSoundEffect().play();
+				
 				//TODO draw burst animation
 				iter.remove();
 			}

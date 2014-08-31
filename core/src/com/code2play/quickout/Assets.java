@@ -3,7 +3,9 @@ package com.code2play.quickout;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.badlogic.gdx.Audio;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Animation.PlayMode;
@@ -39,6 +41,9 @@ public class Assets {
 	public static final String LEVEL_BACKGROUND_CLOUD8 = "cloud8";
 	public static final String LEVEL_BACKGROUND_CLOUD9 = "cloud9";
 	
+	private static Array<Sound> ballCorrectPlopEffectSounds;
+	private static Array<Sound> ballWrongPlopEffectSounds;
+	
 
 	/**
 	 * Call this method to load all necessary texture files and etc.
@@ -48,6 +53,7 @@ public class Assets {
 		lSceneAtlas = new TextureAtlas(Gdx.files.internal("textures/level/scene.pack"));
 		loadTextures();
 		loadAnimations();
+		loadSounds();
 	}
 	
 	/**
@@ -110,9 +116,36 @@ public class Assets {
 		}
 	}
 	
+	private static void loadSounds() {
+		ballCorrectPlopEffectSounds  = new Array<Sound>();
+		ballWrongPlopEffectSounds = new Array<Sound>();
+		String prefix = "sound/level/ball/plop_";
+		for (int i = 1; i <= 6 ; i++) {
+			ballCorrectPlopEffectSounds.add(Gdx.audio.newSound(Gdx.files.internal(prefix + i + ".wav")));
+		}
+		
+		for (int i = 7; i <= 8 ; i++) {
+			ballWrongPlopEffectSounds.add(Gdx.audio.newSound(Gdx.files.internal(prefix + i + ".wav")));
+		}
+	}
+	
+	public static Sound getCorrectBallPlopSoundEffect() {
+		return ballCorrectPlopEffectSounds.random();
+	}
+	
+	public static Sound getWrongBallPlopSoundEffect() {
+		return ballWrongPlopEffectSounds.random();
+	}
+	
 	public static void dispose() {
 		for (Texture t : textures) {
 			t.dispose();
+		}
+		for (Sound s : ballCorrectPlopEffectSounds) {
+			s.dispose();
+		}
+		for (Sound s : ballWrongPlopEffectSounds) {
+			s.dispose();
 		}
 		textures.clear();
 		textureMap.clear();

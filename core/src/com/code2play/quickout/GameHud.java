@@ -14,8 +14,8 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
+import com.badlogic.gdx.scenes.scene2d.ui.ProgressBar;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.code2play.game.IHud;
@@ -43,6 +43,7 @@ public class GameHud implements IHud {
 	private LabelStyle countStyle;
 	
 	private Group moveIconGroup;
+	private AnimatedImage prevIcon1;
 	private AnimatedImage moveIcon1;
 	private AnimatedImage moveIcon2;
 	private AnimatedImage moveIcon3;
@@ -53,6 +54,7 @@ public class GameHud implements IHud {
 	
 	private Group scoreEffectGroup;
 	private LabelStyle style;
+	private LabelStyle penaltyStyle;
 	private BitmapFont font;
 	
 	private Image bottomHud;
@@ -75,6 +77,7 @@ public class GameHud implements IHud {
 		fillContent();
 	}
 	
+	/** fill content of the stage **/
 	private void fillContent() {
 		// create a score label
 		scoreFont = new BitmapFont();
@@ -124,6 +127,10 @@ public class GameHud implements IHud {
 		// create level goal indicator
 		//TODO
 		moveIconGroup = new Group();
+		prevIcon1 = new AnimatedImage( Assets.animationList.get(Level.BLUE).first() );
+//		prevIcon1.setSize(moveIconSize, moveIconSize);
+		prevIcon1.setPosition( stage.getWidth()/2 - moveIconSize/2, stage.getHeight()-100 );
+		prevIcon1.setVisible(false);
 		moveIcon1 = new AnimatedImage( Assets.animationList.get(Level.BLUE).first() );
 		moveIcon1.setSize(moveIconSize, moveIconSize);
 		moveIcon1.setPosition( stage.getWidth()/2 - moveIconSize/2, stage.getHeight()-100 );
@@ -148,6 +155,7 @@ public class GameHud implements IHud {
 		nextMoveIcon3.setPosition( stage.getWidth()/2 + moveIconSize/2 + 20, stage.getHeight()-100 );
 		nextMoveIcon3.setVisible(false);
 		
+		moveIconGroup.addActor(prevIcon1);
 		moveIconGroup.addActor(nextMoveIcon1);
 		moveIconGroup.addActor(nextMoveIcon2);
 		moveIconGroup.addActor(nextMoveIcon3);
@@ -161,6 +169,9 @@ public class GameHud implements IHud {
 		font = new BitmapFont();
 		font.scale(1.5f);
 		style = new LabelStyle(font, Color.ORANGE);
+		penaltyStyle = new LabelStyle(font, Color.RED);
+		
+		//TODO time progress bar, preferrably circular
 		
 		// add all actors to the stage
 		// actors inserted later will be drawn on top of actors added earlier. 
@@ -177,10 +188,13 @@ public class GameHud implements IHud {
 		Iterator<ScoreIndicator> iter = scores.iterator();
 		while(iter.hasNext()) {
 			ScoreIndicator score = iter.next();
-			scoreEffectGroup.addActor(new ScoreEffectLabel(stage, score, style));
+			if (score.isPenalty) scoreEffectGroup.addActor(new ScoreEffectLabel(stage, score, penaltyStyle));
+			else scoreEffectGroup.addActor(new ScoreEffectLabel(stage, score, style));
 			iter.remove();
 		}
 	}
+	
+	boolean firstMove = true;
 	
 	/**
 	 * Displays move icons according to the moveset
@@ -192,6 +206,25 @@ public class GameHud implements IHud {
 		switch (moves.size) {
 		case 1:
 			// set current moveset
+			if (firstMove) {
+				prevIcon1.setVisible(false);
+				firstMove = false;
+			}
+			else {
+				prevIcon1.setVisible(true);
+				prevIcon1.setAnimation(moveIcon1.getAnimation(), moveIcon1.getStateTime());
+				prevIcon1.setPosition(moveIcon1.getX(), moveIcon1.getY());
+				prevIcon1.setSize(nextMoveIconSize, nextMoveIconSize);
+				prevIcon1.addAction(sequence(
+						scaleTo(moveIconSize/nextMoveIconSize, moveIconSize/nextMoveIconSize),
+//						fadeIn(0.0f),
+						parallel(
+						moveTo(moveIcon1.getX() - moveIconSize/2, moveIcon1.getY()+ nextMoveIconSize/4, 0.15f, Interpolation.linear),
+//						fadeOut(0.25f, Interpolation.linear),
+						scaleTo(1.0f, 1.0f, 0.15f, Interpolation.linear)
+						)));//TODO won't scale back
+			}
+			
 			moveIcon1.setAnimation(Assets.animationList.get(moves.first().ballType).first());
 			moveIcon1.setPosition(stage.getWidth()/2 + moveIconSize/4, stage.getHeight()-100.0f + nextMoveIconSize/4);
 			moveIcon1.setSize(nextMoveIconSize, nextMoveIconSize);

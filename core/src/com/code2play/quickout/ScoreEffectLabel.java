@@ -14,12 +14,14 @@ public class ScoreEffectLabel extends Label {
 	
 	public ScoreEffectLabel(Stage stage, ScoreIndicator score, LabelStyle style) {
 		super(Integer.toString(score.score), style);
-		this.setPosition(score.posX / (Level.MAX_VIRTUAL_WIDTH/stage.getWidth()), 
-				score.posY / (Level.MAX_VIRTUAL_HEIGHT/stage.getHeight()));
+		if (score.posX < 0) score.posX = 20;
+		if (score.posX > Level.MAX_VIRTUAL_WIDTH) score.posX = Level.MAX_VIRTUAL_WIDTH - 20;
+		this.setPosition(score.posX / (float)(Level.MAX_VIRTUAL_WIDTH/stage.getWidth()), 
+				score.posY / (float)(Level.MAX_VIRTUAL_HEIGHT/stage.getHeight()));
 		this.addAction(
 				parallel(
 				moveTo(this.getX(), this.getY()+100, 2.50f, Interpolation.linear),
-//				scaleTo(0.5f, 0.5f, 2.50f, Interpolation.linear),
+				scaleTo(0.1f, 0.1f, 2.50f, Interpolation.linear),
 				fadeOut(2.50f, Interpolation.linear)
 				));
 	}

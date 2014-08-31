@@ -24,6 +24,7 @@ public class Ball extends Entity {
 	public String type;									// representation of the ball's type
 	public int tag;
 	public boolean hasCollidedCorrectly = false;		// whether of not the ball is correctly collided of the specified type
+	public boolean correctMove = false;					// whether this ball is correctly eliminated
 	public int score;									// point of this ball if it were to be removed
 	
 	/* Animations */

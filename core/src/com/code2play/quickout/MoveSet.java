@@ -104,7 +104,7 @@ public class MoveSet {
 
 			for (int i = 0; i < MAX_SIZE; i++) {
 				if (nextMoves.size == 0) 
-					moves.add( new Move(ballTypes.random(), MoveType.TAP, false) );
+					moves.add( new Move(ballTypes.random(), MoveType.ANY, false) );
 				else
 					moves.add(nextMoves.get(i));
 			} 
@@ -125,7 +125,7 @@ public class MoveSet {
 			nextMoves.clear();
 			
 			for (int i = 0; i < MAX_SIZE; i++) {
-				nextMoves.add( new Move(ballTypes.random(), MoveType.TAP, false) );
+				nextMoves.add( new Move(ballTypes.random(), MoveType.ANY, false) );
 			}
 		}
 	}

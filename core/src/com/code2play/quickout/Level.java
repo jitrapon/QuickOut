@@ -53,11 +53,13 @@ public class Level implements IGameManager {
 	public static final int MAX_VIRTUAL_WIDTH = 1200;
 	public static final int MAX_VIRTUAL_HEIGHT = 1600;
 	private static final float MAX_SPEED = 20.0f;								// the maximum speed of any ball
+	public static final float MAX_LEVEL_TIME = 15.0f;							// duration of this level in seconds
 	private static final float RESPAWN_TIME = 0.25f;							// time in seconds before the next respawn
-	private static final float MOVE_CHANGE_TIME = 3.5f;							// if used, indicates the time in seconds before the next moveset is changed
+	private static final float MOVE_CHANGE_TIME = 6.5f;							// if used, indicates the time in seconds before the next moveset is changed
 	public boolean spawnMoreBalls = true;										// indicates whether to continue spawning more balls
 
 	/* Some variables */
+	private float time = 0;														// current time elapsed since the start of the level
 	private int score = 0;														// current level's SCORE !!!
 	private int ballCount = 0;													// current level's ball collected!!!
 	private float spawnTime = 0.0f;												// keep tracks of current time in seconds (for next respawn)
@@ -97,11 +99,18 @@ public class Level implements IGameManager {
 		float posX;
 		float posY;
 		int score;
+		boolean isPenalty;
 		
 		public ScoreIndicator(float posX, float posY, int score) {
 			this.posX = posX;
 			this.posY = posY;
 			this.score = score;
+			this.isPenalty = false;
+		}
+		
+		public ScoreIndicator(float posX, float posY, int score, boolean isPenalty) {
+			this(posX, posY, score);
+			this.isPenalty = true;
 		}
 	}
 
@@ -422,10 +431,21 @@ public class Level implements IGameManager {
 
 				// no need to validate action on collision hits
 				if (!ball.hasCollidedCorrectly) {
+					
+					// correct move!
 					if (validateAction(ball)) {
 						score += scoreAdder * 1.5;
 						ballCount+=1;											// use 1 because it is a variable!
+						ball.correctMove = true;
 						ballPoints.add(new ScoreIndicator(ball.x, ball.y, (int) (scoreAdder*1.5)));
+					}
+					
+					// wrong move!
+					// penalize the player
+					else {
+						ball.correctMove = false;
+						ballCount = ballCount-3 < 0? 0 : ballCount-3;
+						ballPoints.add(new ScoreIndicator(ball.x, ball.y, -3, true));
 					}
 				}
 				
@@ -454,6 +474,7 @@ public class Level implements IGameManager {
 				moveChangeTimer > MOVE_CHANGE_TIME 
 				|| moveSet.isCorrect()
 				) {
+			if (moveChangeTimer > MOVE_CHANGE_TIME) ballCount = ballCount-3 < 0? 0 : ballCount-3;
 			moveSet.setMoveset(true);
 			moveChangeTimer = 0.0f;
 		}
@@ -461,6 +482,15 @@ public class Level implements IGameManager {
 		// update respawn timer
 		spawnTime += delta;
 		moveChangeTimer += delta;
+		time += delta;
+	}
+	
+	/**
+	 * Get the elapsed time in seconds since the start of the level
+	 * @return the elapsed time in sec
+	 */
+	public float getElapsedTime() {
+		return time;
 	}
 	
 	/**
