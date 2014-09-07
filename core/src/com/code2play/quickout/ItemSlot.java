@@ -10,19 +10,16 @@ public class ItemSlot {
 //	public static void main(String[] args) {
 //		ItemSlot itemSlot = new ItemSlot(3);
 //		itemSlot.addItem("DoubleScore");
-//		itemSlot.removeItem(0);
 //		itemSlot.addItem("Apple");
 //		itemSlot.addItem("Banana");
+//		itemSlot.removeItem(1);
 //		itemSlot.addItem("Orange");
-//		itemSlot.removeItem(0);
-//		itemSlot.removeItem(2);
-//		itemSlot.addItem("Mango");
 //		
 //		System.out.println(itemSlot);
 //		System.out.println("Current fill index: " + itemSlot.getNextFillSlotIndex());
 //	}
 
-	private Object[] slots;									// array to hold items
+	private Item[] slots;									// array to hold items
 	private int maxSize;									// maximum item slots available at this Level instance
 	private boolean isLocked;								// indicates whether player can access or modify the slots
 	private int fillIndex;									// the index of the slot to be filled for the next item stored
@@ -36,12 +33,24 @@ public class ItemSlot {
 		maxSize = size;
 		isLocked = false;
 		fillIndex = 0;
-		slots = new Object[maxSize];
+		slots = new Item[maxSize];
 		size = 0;
+	}
+	
+	public int getMaxSize() {
+		return maxSize;
 	}
 	
 	public int getSize() {
 		return slots.length;
+	}
+	
+	public Item[] getItems() {
+		return slots;
+	}
+	
+	public Item getItemAt(int index) {
+		return slots[index];
 	}
 
 	@Override
@@ -64,14 +73,16 @@ public class ItemSlot {
 	 * fill index (items will NOT be added to the same slot two consecutive times).
 	 * @param item
 	 */
-	public void addItem(Object item) {
+	public void addItem(Item item) {
 		if (!isLocked) {
+			Item oldItem = slots[fillIndex];
 			slots[fillIndex] = item;
 			size++;
 			size = size > maxSize ? maxSize : size;
 
 			// if full, the next item will replace the one stored in the next slot
 			if (this.isFull()) {
+				if (oldItem != null) oldItem.removed = true;
 				incrementIndex();
 			}
 
@@ -90,18 +101,21 @@ public class ItemSlot {
 	 * The occupied slot will be free for the next item to be stored.
 	 * @param index	The index of item to be removed
 	 */
-	public Object removeItem(int index) {
+	public Item removeItem(int index) {
 		if (!isLocked) {
 			if (index > maxSize-1 || index < 0) return null; 
 			if (slots[index] == null) return null;
-			Object item = slots[index];
+			Item item = slots[index];
 			slots[index] = null;
 			size--;
 
 			// find the first empty slot starting from index 0 
 			// if there's no empty slot, the current removed item slot will be the index
-			for (int i = 0; i < fillIndex; i++) {
-				if (slots[i] == null) fillIndex = i;
+			for (int i = 0; i < maxSize; i++) {
+				if (slots[i] == null) {
+					fillIndex = i;
+					break;
+				}
 			}
 			return item;
 		}

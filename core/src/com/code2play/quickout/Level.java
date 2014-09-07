@@ -45,8 +45,9 @@ public class Level implements IGameManager {
 	public static final float BOX_TO_WORLD = 75.0f;	
 
 	/* This level's constants */
-	public boolean gravityEnabled = true;
+	public boolean gravityEnabled = false;
 	private static final float BALL_RADIUS = 75.0f;
+	public static final float ITEM_RADIUS = 50.0f;
 	public static final int MAX_NUM_OBJECT_ONSCREEN = 17;						// maximum number of spawnable objects onscreen at this level
 	public static final int VIRTUAL_WIDTH = 900;								// the screen width in world's coordinate
 	public static final int VIRTUAL_HEIGHT = 1600;								// the screen height in world's coordinate
@@ -57,15 +58,19 @@ public class Level implements IGameManager {
 	private static final float RESPAWN_TIME = 0.25f;							// time in seconds before the next respawn
 	private static final float MOVE_CHANGE_TIME = 6.5f;							// if used, indicates the time in seconds before the next moveset is changed
 	public boolean spawnMoreBalls = true;										// indicates whether to continue spawning more balls
+	private static final int MAX_NUM_ITEMS = 3;									// maximum number of item slots
 
 	/* Some variables */
 	private float time = 0;														// current time elapsed since the start of the level
-	private int score = 0;														// current level's SCORE !!!
+	private int score = 0;														// current level's score
+	private int comboScore = 0;													// current level's combo score
 	private int ballCount = 0;													// current level's ball collected!!!
 	private float spawnTime = 0.0f;												// keep tracks of current time in seconds (for next respawn)
 	private Array<Ball> balls;													// contains the list of balls onscreen at this level
 	private Array<ScoreIndicator> ballPoints;									// contains the list of points worth of all balls 
 																				// to be used for rendering
+	private ItemSlot itemSlot;													// storing items
+	private Array<Item> items;
 	private Body groundBody;													// used as anchor for mousejoint only
 
 	/* Ball Type Constants */ 
@@ -124,7 +129,9 @@ public class Level implements IGameManager {
 		bListener = new CollisionListener();
 		world.setContactListener(bListener);
 		balls = new Array<Ball>(MAX_NUM_OBJECT_ONSCREEN);
+		items = new Array<Item>();
 		ballPoints = new Array<ScoreIndicator>(MAX_NUM_OBJECT_ONSCREEN);
+		itemSlot = new ItemSlot(MAX_NUM_ITEMS);
 	}
 	
 	public int getScore() {
@@ -133,6 +140,10 @@ public class Level implements IGameManager {
 	
 	public int getBallCount() {
 		return ballCount;
+	}
+	
+	public ItemSlot getItemSlot() {
+		return itemSlot;
 	}
 
 	/**
@@ -198,7 +209,10 @@ public class Level implements IGameManager {
 	 */
 	public Array<Animation> getAnimationSet(int index) {
 		if (index >= Assets.animationList.size)  return null;
-		else  return Assets.animationList.get(index);
+		else  {
+			currBallType = index;
+			return Assets.animationList.get(index);
+		}
 	}
 
 	
@@ -253,6 +267,13 @@ public class Level implements IGameManager {
 		createWallBoundary();
 	}
 
+	/**
+	 * Spawn a ball on a specified world coordinate
+	 * @param texture The ball's texture
+	 * @param posX	World's x coordinate
+	 * @param posY World's y coordinate
+	 * @param lifeTime This ball's lifetime in seconds before it disappears
+	 */
 	public Ball spawnBall(Array<Animation> animList, float posX, float posY, float lifeTime, int tag) {
 		Ball ball = new Ball(animList, BALL_RADIUS, tag);
 		ball.setWorld(this);
@@ -261,6 +282,12 @@ public class Level implements IGameManager {
 		return ball;
 	}
 
+	/**
+	 * Spawn a ball on a random world coordinate within the camera
+	 * @param t The ball's texture
+	 * @param lifeTime This ball's lifetime in seconds before it disappears
+	 * @return
+	 */
 	public Ball spawnBall(Array<Animation> animList, float lifeTime, int tag) {
 		Ball ball = new Ball(animList, BALL_RADIUS, tag);
 		ball.setWorld(this);
@@ -269,6 +296,18 @@ public class Level implements IGameManager {
 		ball.attachPhysicsBody(EntityType.BALL.categoryBits, ball.radius, posX, posY, 1.0f, 1.0f, 1.0f, 1.0f);
 		addBall(ball);
 		return ball;
+	}
+	
+	public Item spawnItem(Animation animation, int tag, float maxDuration, float lifeTime) {
+		//TODO item factory class
+		Item item = new Item(animation, ITEM_RADIUS, tag, maxDuration, lifeTime);
+		item.setWorld(this);
+		float posX = getRandomCoordinate(item.radius, VIRTUAL_WIDTH-item.radius);
+//		float posY = getRandomCoordinate(item.radius + GROUND_HEIGHT, VIRTUAL_HEIGHT-item.radius);
+		float posY = VIRTUAL_HEIGHT;
+		item.attachPhysicsBody(EntityType.SPECIAL.categoryBits, posX, posY, 1.0f, 1.0f, 1.0f, 1.0f);
+		addItem(item);
+		return item;
 	}
 
 	/**
@@ -385,6 +424,10 @@ public class Level implements IGameManager {
 	private void addBall(Ball b) {
 		balls.add(b);
 	}
+	
+	private void addItem(Item item) {
+		items.add(item);
+	}
 
 	public float getWorldToBoxMultiplier() {
 		return WORLD_TO_BOX;
@@ -397,6 +440,10 @@ public class Level implements IGameManager {
 	public Array<ScoreIndicator> getScoreIndicators() {
 		return ballPoints;
 	}
+	
+	public Array<Item> getUnslottedItems() {
+		return items;
+	}
 
 	Random random = new Random();
 	Texture texture = null;
@@ -405,6 +452,11 @@ public class Level implements IGameManager {
 	float moveChangeTimer = 0.0f;
 	int numBall = 0;
 	int scoreAdder = 0;
+	float comboTimer = 0f;
+	boolean hasNotSpawnedItem = false;
+	Array<Ball> collidedBalls = new Array<Ball>();
+	
+	int itemSize = -1;
 	
 	/** Called when the World is to be updated.
 	 * @param delta the time in seconds since the last render. */
@@ -420,6 +472,8 @@ public class Level implements IGameManager {
 		while (iter.hasNext()) {
 			Ball ball = iter.next();
 			ball.update(delta);
+			if (ball.collidedWithBall != null) 
+				collidedBalls.add(ball.collidedWithBall);
 
 			// remove objects that are flagged as removed
 			if (ball.removed) {
@@ -438,6 +492,8 @@ public class Level implements IGameManager {
 						ballCount+=1;											// use 1 because it is a variable!
 						ball.correctMove = true;
 						ballPoints.add(new ScoreIndicator(ball.x, ball.y, (int) (scoreAdder*1.5)));
+						comboScore+=1;
+						hasNotSpawnedItem = true;
 					}
 					
 					// wrong move!
@@ -446,6 +502,7 @@ public class Level implements IGameManager {
 						ball.correctMove = false;
 						ballCount = ballCount-3 < 0? 0 : ballCount-3;
 						ballPoints.add(new ScoreIndicator(ball.x, ball.y, -3, true));
+						comboScore = 0;
 					}
 				}
 				
@@ -454,9 +511,20 @@ public class Level implements IGameManager {
 					score += scoreAdder * 2;
 					ballCount+=1;												// use 1 because it is a variable!
 					ballPoints.add(new ScoreIndicator(ball.x, ball.y, scoreAdder*2));
+					comboScore+=1;
+					hasNotSpawnedItem = true;
+					
+					if (collidedBalls.contains(ball, true)) {
+//						//TODO spawn new ball of the indicated color
+//						anim = getAnimationSet(moveSet.getMoves().first().ballType);
+//						b = spawnBall(anim, ball.x, ball.y, -1.0f, currBallType);
+//						spawnTime = 0.0f;
+//						numBall++;
+					}
 				}
 			}
 		}
+		collidedBalls.clear();
 
 		// spawn entities if current num is less than max value
 		if (numBall < MAX_NUM_OBJECT_ONSCREEN && spawnMoreBalls) {
@@ -474,15 +542,47 @@ public class Level implements IGameManager {
 				moveChangeTimer > MOVE_CHANGE_TIME 
 				|| moveSet.isCorrect()
 				) {
-			if (moveChangeTimer > MOVE_CHANGE_TIME) ballCount = ballCount-3 < 0? 0 : ballCount-3;
+			if (moveChangeTimer > MOVE_CHANGE_TIME) {
+				ballCount = ballCount-3 < 0? 0 : ballCount-3;
+				comboScore = 0;
+			}
 			moveSet.setMoveset(true);
 			moveChangeTimer = 0.0f;
+		}
+		
+		// Update items and their effects
+		Iterator<Item> itemIter = items.iterator();
+		while (itemIter.hasNext()) {
+			Item item = itemIter.next();
+			item.update(delta);
+			
+			// remove objects that are flagged as removed
+			if (item.removed) {
+			}
+		}
+		
+		if (items.size != itemSize) {
+			System.out.println(items.size);
+			itemSize = items.size;
+		}
+		
+		//TODO Spawn new items based on combo
+		if (comboTimer > 3.5f) {
+			comboScore = 0;
+			comboTimer = 0.0f;
+		}
+		else {
+			if (comboScore > 0 && comboScore % 5 == 0 && hasNotSpawnedItem) {
+				spawnItem(Assets.itemAnimationList.random(), 0, 3f, 5f);
+				hasNotSpawnedItem = false;
+			}
 		}
 
 		// update respawn timer
 		spawnTime += delta;
 		moveChangeTimer += delta;
 		time += delta;
+		comboTimer += delta;
 	}
 	
 	/**
@@ -549,11 +649,14 @@ public class Level implements IGameManager {
 					&& contact.getFixtureB().getBody().getUserData() instanceof Ball) {
 				Ball ballA = (Ball) contact.getFixtureA().getBody().getUserData();
 				Ball ballB = (Ball) contact.getFixtureB().getBody().getUserData();
-				if (ballA.tag == moveSet.getMoves().first().ballType
-						&& ballB.tag == moveSet.getMoves().first().ballType) {
+				if (ballA.tag == moveSet.getMoves().first().ballType &&
+						ballB.tag == moveSet.getMoves().first().ballType) {
+//				if (ballA.tag == ballB.tag) {
 					ballA.hasCollidedCorrectly = true;
+					ballA.collidedWithBall = ballB;
 					ballB.hasCollidedCorrectly = true;
-					Gdx.app.log("COLLISION", "Ball " + ballA.getType() + " is colliding with " + ballB.getType());
+					ballB.collidedWithBall = ballA;
+//					Gdx.app.log("COLLISION", "Ball " + ballA.getType() + " is colliding with " + ballB.getType());
 					//TODO increase the score
 				}
 				ballA.startContact();

@@ -23,8 +23,9 @@ public class Assets {
 	public static Array<Texture> textures;
 	private static TextureAtlas ballAtlas;
 	private static TextureAtlas lSceneAtlas;							// LEVEL SCENE PACK
-	private static final int DEFAULT_TEXTURE_LOAD_SIZE = 10;
+	private static final int DEFAULT_TEXTURE_LOAD_SIZE = 20;
 	public static Array<Array<Animation>> animationList;
+	public static Array<Animation> itemAnimationList;
 	
 	private static Map<String, TextureRegion> textureMap;
 	
@@ -40,9 +41,13 @@ public class Assets {
 	public static final String LEVEL_BACKGROUND_CLOUD7 = "cloud7";
 	public static final String LEVEL_BACKGROUND_CLOUD8 = "cloud8";
 	public static final String LEVEL_BACKGROUND_CLOUD9 = "cloud9";
+	public static final String ITEM_PLACEHOLDER = "Item_PlaceHolder";
+	public static final String ITEM_DOUBLESCORE = "Item_DoubleScore";
+	public static final String ITEM_VACUUM = "Item_Vacuum";
 	
 	private static Array<Sound> ballCorrectPlopEffectSounds;
 	private static Array<Sound> ballWrongPlopEffectSounds;
+	private static Animation itemPlaceHolderAnimation;
 	
 
 	/**
@@ -78,6 +83,11 @@ public class Assets {
 		textureMap.put( LEVEL_BACKGROUND_CLOUD7, lSceneAtlas.findRegion(LEVEL_BACKGROUND_CLOUD7) );
 		textureMap.put( LEVEL_BACKGROUND_CLOUD8, lSceneAtlas.findRegion(LEVEL_BACKGROUND_CLOUD8) );
 		textureMap.put( LEVEL_BACKGROUND_CLOUD9, lSceneAtlas.findRegion(LEVEL_BACKGROUND_CLOUD9) );
+		
+		// load items
+		textureMap.put( ITEM_PLACEHOLDER, ballAtlas.findRegion(ITEM_PLACEHOLDER) );
+		textureMap.put( ITEM_DOUBLESCORE, ballAtlas.findRegion(ITEM_DOUBLESCORE) );
+		textureMap.put( ITEM_VACUUM, ballAtlas.findRegion(ITEM_VACUUM) );
 	}
 	
 	public static TextureRegion getTextureRegion(String regionName) {
@@ -90,6 +100,7 @@ public class Assets {
 	
 	private static void loadAnimations() {
 		animationList = new Array<Array<Animation>>();
+		itemAnimationList = new Array<Animation>();
 		
 		// There are three animations to load, namely IDLE, PROVOKED, and SCARED
 		Array<String> prefixes = new Array<String>(4);
@@ -114,6 +125,13 @@ public class Assets {
 			
 			animationList.add(anim);
 		}
+		itemPlaceHolderAnimation = new Animation( 1/15f, ballAtlas.findRegions(ITEM_PLACEHOLDER) );
+		itemAnimationList.add(new Animation( 1/15f, ballAtlas.findRegions(ITEM_DOUBLESCORE) ));
+		itemAnimationList.add(new Animation( 1/15f, ballAtlas.findRegions(ITEM_VACUUM) ));
+	}
+	
+	public static Animation getItemPlaceHolderAnimation() {
+		return itemPlaceHolderAnimation;
 	}
 	
 	private static void loadSounds() {

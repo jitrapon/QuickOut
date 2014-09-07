@@ -12,10 +12,12 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
-import com.badlogic.gdx.scenes.scene2d.ui.ProgressBar;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.code2play.game.IHud;
@@ -56,6 +58,8 @@ public class GameHud implements IHud {
 	private LabelStyle style;
 	private LabelStyle penaltyStyle;
 	private BitmapFont font;
+	
+	private Group itemSlotGroup;
 	
 	private Image bottomHud;
 	private Group topHud;						
@@ -173,6 +177,29 @@ public class GameHud implements IHud {
 		
 		//TODO time progress bar, preferrably circular
 		
+		// item slots
+		itemSlotGroup = new Group();
+		for (int i = 0; i < level.getItemSlot().getMaxSize(); i++) {
+			AnimatedImage item = new AnimatedImage(Assets.getItemPlaceHolderAnimation());
+			item.setPosition(i*70 + 20, 30);
+			item.setSize(Level.ITEM_RADIUS, Level.ITEM_RADIUS);
+			item.addListener(
+					 new InputListener() {
+						 //TODO
+					      public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+					    	 int index = (Integer) event.getListenerActor().getUserObject();
+					    	 Item item = level.getItemSlot().removeItem(index);
+					    	 if (item != null) {
+					    		 item.setActive(true);
+					    	 }
+					         return true; //or false
+					      }
+					   }
+					);
+			item.setUserObject(i);
+			itemSlotGroup.addActor(item);
+		}
+		
 		// add all actors to the stage
 		// actors inserted later will be drawn on top of actors added earlier. 
 		// Touch events that hit more than one actor are distributed to topmost actors first.
@@ -182,6 +209,21 @@ public class GameHud implements IHud {
 		stage.addActor(moveIconGroup);
 		stage.addActor(scoreEffectGroup);
 		stage.addActor(bottomHud);
+		stage.addActor(itemSlotGroup);
+	}
+	
+	private void setItemSlot(ItemSlot itemSlot) {
+		for (int i = 0; i < itemSlot.getMaxSize(); i++) {
+			AnimatedImage slot = ((AnimatedImage)(itemSlotGroup.getChildren().get(i)));
+			Item item = itemSlot.getItemAt(i);
+			if (item == null) {
+				slot.setAnimation(Assets.getItemPlaceHolderAnimation());
+			}
+			else {
+				slot.setAnimation(item.getAnimation());
+//				slot.setUserObject(item);
+			}
+		}
 	}
 	
 	private void setScoreIndicators(Array<ScoreIndicator> scores) {
@@ -304,6 +346,9 @@ public class GameHud implements IHud {
 				scoreEffectGroup.removeActor(label);
 			}
 		}
+		
+		// update item slots
+		setItemSlot(level.getItemSlot());
 		
 		// stage update
 	    stage.act(delta);

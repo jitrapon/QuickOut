@@ -37,6 +37,7 @@ public class WorldView implements GestureListener {
 	private FPSLogger fpsLogger;
 
 	public Ball draggedBall;					// specifies which ball is currently being dragged
+	public Item draggedItem;
 
 	/** Gesture detector **/
 	GestureDetector gestureDetector;
@@ -125,7 +126,7 @@ public class WorldView implements GestureListener {
 	boolean switchTime = false;
 	public void render(float delta) {
 		// debug fps log
-		fpsLogger.log();
+//		fpsLogger.log();
 
 		// clear the screen with a dark blue color. The
 		// arguments to glClearColor are the red, green
@@ -165,6 +166,9 @@ public class WorldView implements GestureListener {
 
 		// draw balls
 		drawBalls();
+		
+		// draw unslotted items
+		drawItems();
 
 		/********************************
 		 * END GAME ENTITIES DRAWING
@@ -184,6 +188,9 @@ public class WorldView implements GestureListener {
 			if (Gdx.input.isPeripheralAvailable(Peripheral.Accelerometer) == true) { 
 				processAccelerometer();
 			}
+		}
+		else {
+			level.getPhysicsWorld().setGravity( new Vector2(0, -2.0f) );
 		}
 	}
 
@@ -223,6 +230,35 @@ public class WorldView implements GestureListener {
 			}
 		}
 	}
+	
+	public void drawItems() {
+		Iterator<Item> iter = level.getUnslottedItems().iterator();
+		while (iter.hasNext()) {
+			Item item = iter.next();
+			
+			// item's effect is out of duration, timed out, or flinged out of bounds
+			if (item.removed) {
+				// play sound effect
+				
+				//TODO draw burst animation
+				iter.remove();					
+			}
+			
+			// item's effect is active
+			else if (item.isActive()) {
+				
+			}
+			
+			else if (item.slotted) {
+				
+			}
+			
+			else {
+				batch.draw(item.getAnimation().getKeyFrame(item.stateTime), 
+						item.x - item.radius, item.y - item.radius, item.radius*2, item.radius*2);
+			}
+		}
+	}
 
 	public void dispose() {
 		batch.dispose();
@@ -240,7 +276,17 @@ public class WorldView implements GestureListener {
 
 	@Override
 	public boolean tap(float x, float y, int count, int button) {
-		//		Gdx.app.log("Tap", x + ", " + y);
+//				Gdx.app.log("Tap", x + ", " + y);
+		for (Item item : level.getUnslottedItems()) {
+			ballPos.set(item.x, item.y);
+			touchPos.set(x, y, 0);
+			camera.unproject(touchPos);
+			if (item.radius >= Math.abs(ballPos.dst(new Vector2(touchPos.x, touchPos.y))))  {
+				item.setActive(true);
+				return false;
+			}
+		}
+		
 		for (Ball b : level.getBalls()) {
 			ballPos.set(b.x, b.y);
 			touchPos.set(x, y, 0);
@@ -249,6 +295,7 @@ public class WorldView implements GestureListener {
 				b.setState(Ball.TAPPED);
 			}
 		}
+		
 		return false;
 	}
 
@@ -302,6 +349,35 @@ public class WorldView implements GestureListener {
 					b.getBody().setAwake(true);
 
 					draggedBall = b;
+					break;
+				}
+			}
+			
+			if (mouseJoint == null) {
+				for (Item item : level.getUnslottedItems()) {
+					// we don't check for slotted items
+					if (item.state == Item.SLOTTED) continue;
+
+					Vector2 ballPos = new Vector2(item.x, item.y);
+					if (item.bounds().radius >= Math.abs(ballPos.dst(new Vector2(touchPos.x, touchPos.y)))) {
+
+						// init mousejoint
+						MouseJointDef mJointDef = new MouseJointDef();
+						mJointDef.bodyA = level.getGroundBody();
+						mJointDef.bodyB = item.getBody();
+						mJointDef.dampingRatio = 0.0f;
+						//					mJointDef.frequencyHz = 0.2f;
+						mJointDef.collideConnected = true;
+						mJointDef.target.set(touchPos.x * level.getWorldToBoxMultiplier(), touchPos.y * level.getWorldToBoxMultiplier());
+						mJointDef.maxForce = 500.0f * item.getBody().getMass();
+
+						mouseJoint = (MouseJoint)level.getPhysicsWorld().createJoint(mJointDef);
+						item.getBody().setAwake(true);
+
+						draggedItem = item;
+						draggedItem.setState(Item.FLINGED);
+						break;
+					}
 				}
 			}
 			//			Gdx.app.log("Drag", "Drag position is " + touchPos.x + ", " + touchPos.y);
@@ -328,6 +404,11 @@ public class WorldView implements GestureListener {
 			draggedBall.setState(Ball.FLINGED);
 			// if too slow -> set state to Ball.INACTIVE
 			draggedBall = null;
+		}
+		
+		if (draggedItem != null) {
+			draggedItem.setState(Item.FLINGED);
+			draggedItem = null;
 		}
 
 		// if a mouse joint exists we simply destroy it

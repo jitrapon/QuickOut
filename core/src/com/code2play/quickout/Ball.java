@@ -20,12 +20,13 @@ public class Ball extends Entity {
 	public boolean removed = false;						// marked for cleanup
 	private final float mass;
 	public float radius;
-	public boolean physicsEnabled = true;
+//	public boolean physicsEnabled = true;
 	public String type;									// representation of the ball's type
 	public int tag;
 	public boolean hasCollidedCorrectly = false;		// whether of not the ball is correctly collided of the specified type
 	public boolean correctMove = false;					// whether this ball is correctly eliminated
 	public int score;									// point of this ball if it were to be removed
+	public Ball collidedWithBall;						// other ball that this ball has collided with
 	
 	/* Animations */
 	private Array<Animation> animList;
@@ -200,12 +201,14 @@ public class Ball extends Entity {
 		case DRAGGED:
 			currAnim = animList.get(1);										// TODO NOT HARDCODED THIS
 			if (hasCollidedCorrectly) {
-				Gdx.app.log("DRAGGED COLLISION", "Dragged ball " + type + " has collided correctly!");
+//				Gdx.app.log("DRAGGED COLLISION", "Dragged ball " + type + " has collided correctly!");
 				//TODO set mousejoint in WorldView to null if this ball 
 				// is a dragged ball
-				level.getWorldRenderer().draggedBall = null;
-				level.getPhysicsWorld().destroyJoint(level.getWorldRenderer().mouseJoint);
-				level.getWorldRenderer().mouseJoint = null;
+				if (level.getWorldRenderer().mouseJoint != null) {
+					level.getWorldRenderer().draggedBall = null;
+					level.getPhysicsWorld().destroyJoint(level.getWorldRenderer().mouseJoint);
+					level.getWorldRenderer().mouseJoint = null;
+				}
 				removed = true;
 				dispose();
 				return;
