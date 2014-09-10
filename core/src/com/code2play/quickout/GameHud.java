@@ -40,6 +40,8 @@ public class GameHud implements IHud {
 	private LabelStyle scoreStyle;
 	private BitmapFont scoreFont;
 	
+	private ComboScoreLabel combo;									// displays current game combo score
+	
 	private CounterLabel counter;
 	private BitmapFont countFont;
 	private LabelStyle countStyle;
@@ -81,6 +83,14 @@ public class GameHud implements IHud {
 		fillContent();
 	}
 	
+	public LabelStyle getScoreStyle() {
+		return scoreStyle;
+	}
+	
+	public void setScoreStyle(LabelStyle style) {
+		score.setStyle(style);
+	}
+	
 	/** fill content of the stage **/
 	private void fillContent() {
 		// create a score label
@@ -90,6 +100,10 @@ public class GameHud implements IHud {
 		
 		score = new ScoreLabel(level, "undefined", scoreStyle);
 		score.setPosition(stage.getWidth()-100, stage.getHeight()-130);
+		
+		// create a combo score label
+		combo = new ComboScoreLabel(level, "0", scoreStyle);
+		combo.setPosition(120, stage.getHeight()-70);
 		
 		// create ball count label
 		countFont = new BitmapFont();
@@ -206,6 +220,7 @@ public class GameHud implements IHud {
 		stage.addActor(topHud);
 		stage.addActor(counter);
 		stage.addActor(score);
+		stage.addActor(combo);
 		stage.addActor(moveIconGroup);
 		stage.addActor(scoreEffectGroup);
 		stage.addActor(bottomHud);

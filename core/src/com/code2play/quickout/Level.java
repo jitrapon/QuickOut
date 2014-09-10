@@ -18,8 +18,11 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.utils.Array;
 import com.code2play.game.IGameManager;
+import com.code2play.game.items.GoldenTouchItem;
+import com.code2play.game.items.VacuumItem;
 
 /**
  * Level contains the world that Entities live in.
@@ -59,6 +62,8 @@ public class Level implements IGameManager {
 	private static final float MOVE_CHANGE_TIME = 6.5f;							// if used, indicates the time in seconds before the next moveset is changed
 	public boolean spawnMoreBalls = true;										// indicates whether to continue spawning more balls
 	private static final int MAX_NUM_ITEMS = 3;									// maximum number of item slots
+	
+	/* Item's effect variables */
 
 	/* Some variables */
 	private float time = 0;														// current time elapsed since the start of the level
@@ -81,6 +86,11 @@ public class Level implements IGameManager {
 	public static final int RED = 2;
 	public static final int YELLOW = 3;
 	public static final int ANY = 4;
+	
+	/* Item Type Constants */
+	public enum ItemType {
+		GOLDEN_TOUCH, VACUUM;
+	}
 	
 	/* Ground height */
 	public static final float GROUND_HEIGHT = 150.0f;
@@ -298,10 +308,15 @@ public class Level implements IGameManager {
 		return ball;
 	}
 	
-	public Item spawnItem(Animation animation, int tag, float maxDuration, float lifeTime) {
-		//TODO item factory class
-		Item item = new Item(animation, ITEM_RADIUS, tag, maxDuration, lifeTime);
-		item.setWorld(this);
+	/**
+	 * Creates an item at a random position onscreen, spawning at the top of the screen.
+	 * @param animation
+	 * @param maxDuration
+	 * @param lifeTime
+	 * @return
+	 */
+	public Item spawnItem(Animation animation, float maxDuration, float lifeTime) {
+		Item item = getItem(animation, ITEM_RADIUS, maxDuration, lifeTime, this);
 		float posX = getRandomCoordinate(item.radius, VIRTUAL_WIDTH-item.radius);
 //		float posY = getRandomCoordinate(item.radius + GROUND_HEIGHT, VIRTUAL_HEIGHT-item.radius);
 		float posY = VIRTUAL_HEIGHT;
@@ -309,7 +324,25 @@ public class Level implements IGameManager {
 		addItem(item);
 		return item;
 	}
-
+	
+	/**
+	 * Returns a specific implementation of an Item based on the specified tag.
+	 * @param animation
+	 * @param radius
+	 * @param tag
+	 * @param maxDuration
+	 * @param lifeTime
+	 * @return
+	 */
+	private Item getItem(Animation animation, float radius, float maxDuration, float lifeTime, Level level) {
+		if (animation.equals(Assets.itemAnimationList.get(0)))
+			return new GoldenTouchItem(animation, radius, ItemType.GOLDEN_TOUCH, maxDuration, lifeTime, level);
+		else if (animation.equals(Assets.itemAnimationList.get(1)))
+			return new VacuumItem(animation, radius, ItemType.VACUUM, maxDuration, lifeTime, level);
+		else 
+			return null;
+	}
+	
 	/**
 	 * Spawn a ball on a specified world coordinate
 	 * @param texture The ball's texture
@@ -493,6 +526,7 @@ public class Level implements IGameManager {
 						ball.correctMove = true;
 						ballPoints.add(new ScoreIndicator(ball.x, ball.y, (int) (scoreAdder*1.5)));
 						comboScore+=1;
+						comboTimer = 0f;
 						hasNotSpawnedItem = true;
 					}
 					
@@ -503,6 +537,7 @@ public class Level implements IGameManager {
 						ballCount = ballCount-3 < 0? 0 : ballCount-3;
 						ballPoints.add(new ScoreIndicator(ball.x, ball.y, -3, true));
 						comboScore = 0;
+						comboTimer = 0f;
 					}
 				}
 				
@@ -544,45 +579,46 @@ public class Level implements IGameManager {
 				) {
 			if (moveChangeTimer > MOVE_CHANGE_TIME) {
 				ballCount = ballCount-3 < 0? 0 : ballCount-3;
-				comboScore = 0;
 			}
 			moveSet.setMoveset(true);
 			moveChangeTimer = 0.0f;
 		}
 		
 		// Update items and their effects
+		//TODO end item's effect prematurely when another item of the same type is active
 		Iterator<Item> itemIter = items.iterator();
 		while (itemIter.hasNext()) {
 			Item item = itemIter.next();
 			item.update(delta);
+			System.out.println("Duration = " + item.stateTime);
 			
 			// remove objects that are flagged as removed
 			if (item.removed) {
 			}
 		}
 		
-		if (items.size != itemSize) {
-			System.out.println(items.size);
-			itemSize = items.size;
-		}
-		
 		//TODO Spawn new items based on combo
+		//reset combo if inactive for a 
 		if (comboTimer > 3.5f) {
 			comboScore = 0;
-			comboTimer = 0.0f;
+			comboTimer = 0f;
 		}
-		else {
-			if (comboScore > 0 && comboScore % 5 == 0 && hasNotSpawnedItem) {
-				spawnItem(Assets.itemAnimationList.random(), 0, 3f, 5f);
-				hasNotSpawnedItem = false;
-			}
+		
+		if (comboScore > 0 && comboScore % 5 == 0 && hasNotSpawnedItem) {
+			spawnItem(Assets.itemAnimationList.random(), 5f, 5f);
+			hasNotSpawnedItem = false;
 		}
+		
 
 		// update respawn timer
 		spawnTime += delta;
 		moveChangeTimer += delta;
 		time += delta;
 		comboTimer += delta;
+	}
+
+	public int getComboScore() {
+		return comboScore;
 	}
 	
 	/**

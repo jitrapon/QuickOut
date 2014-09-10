@@ -2,10 +2,12 @@ package com.code2play.quickout;
 
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.Filter;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
-import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
+import com.code2play.game.IGameItem;
+import com.code2play.quickout.Level.ItemType;
 
 /**
  * Items are enhancements in a level to boost bonus gold and scores.
@@ -13,13 +15,13 @@ import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
  * @author Jitrapon
  *
  */
-public abstract class Item extends Entity {
-
+public abstract class Item extends Entity implements IGameItem {
+	
 	// physical values
-	public boolean slotted;								// whether this item is slotted
+	public boolean slotted;								// whether this item has been slotted
 	public boolean removed;								// marked for cleanup
 	public float radius;								// radius of this item
-	public int tag;										// type of this item
+	public ItemType type;								// type of this item
 
 	/* Animations */
 	private Animation animation;						// Current animation
@@ -38,12 +40,15 @@ public abstract class Item extends Entity {
 	 * Initializes a generic item.
 	 * @param animList
 	 * @param radius
+	 * @param level 
 	 * @param tag
 	 */
-	public Item(Animation animation, float radius, int tag, float maxDuration, float lifeTime) {
+	public Item(Animation animation, float radius, ItemType type, 
+			float maxDuration, float lifeTime, Level level) {
 		super(radius);
+		this.level = level;
 		this.animation = animation;
-		this.tag = tag;
+		this.type = type;
 		this.radius = radius;
 		MAX_DURATION = maxDuration;
 		this.lifeTime = lifeTime;
@@ -72,11 +77,6 @@ public abstract class Item extends Entity {
 		setState(ACTIVE);
 	}
 	
-	/**
-	 * Applies specific item effect. Override this method to achieve desired item effect.
-	 * Effect lasts for as long as the item's max duration.
-	 */
-	public abstract void applyEffect(float delta);
 
 	@Override
 	public void setState(int state) {
@@ -150,6 +150,7 @@ public abstract class Item extends Entity {
 	/**
 	 * Update the item bubble by each iteration of the world step
 	 */
+	boolean beginActive = true;
 	@Override
 	public void update(float delta) {
 		
@@ -163,8 +164,15 @@ public abstract class Item extends Entity {
 		case ACTIVE:
 //			removed = true;
 			
-			if (stateTime > MAX_DURATION) 
+			if (beginActive) {
+				onEffectStarted(delta);
+				beginActive = false;
+			}
+			
+			if (stateTime > MAX_DURATION) {
 				this.removed = true;
+				onEffectFinished(delta);
+			}
 			
 			else 
 				applyEffect(delta);

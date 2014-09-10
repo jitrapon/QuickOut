@@ -26,7 +26,6 @@ public class Assets {
 	private static final int DEFAULT_TEXTURE_LOAD_SIZE = 20;
 	public static Array<Array<Animation>> animationList;
 	public static Array<Animation> itemAnimationList;
-	
 	private static Map<String, TextureRegion> textureMap;
 	
 	/* ALL TEXTUREREGION IMAGE NAME REFERENCE */
@@ -42,7 +41,7 @@ public class Assets {
 	public static final String LEVEL_BACKGROUND_CLOUD8 = "cloud8";
 	public static final String LEVEL_BACKGROUND_CLOUD9 = "cloud9";
 	public static final String ITEM_PLACEHOLDER = "Item_PlaceHolder";
-	public static final String ITEM_DOUBLESCORE = "Item_DoubleScore";
+	public static final String ITEM_GOLDENTOUCH = "Item_DoubleScore";
 	public static final String ITEM_VACUUM = "Item_Vacuum";
 	
 	private static Array<Sound> ballCorrectPlopEffectSounds;
@@ -86,7 +85,7 @@ public class Assets {
 		
 		// load items
 		textureMap.put( ITEM_PLACEHOLDER, ballAtlas.findRegion(ITEM_PLACEHOLDER) );
-		textureMap.put( ITEM_DOUBLESCORE, ballAtlas.findRegion(ITEM_DOUBLESCORE) );
+		textureMap.put( ITEM_GOLDENTOUCH, ballAtlas.findRegion(ITEM_GOLDENTOUCH) );
 		textureMap.put( ITEM_VACUUM, ballAtlas.findRegion(ITEM_VACUUM) );
 	}
 	
@@ -125,14 +124,17 @@ public class Assets {
 			
 			animationList.add(anim);
 		}
+		
 		itemPlaceHolderAnimation = new Animation( 1/15f, ballAtlas.findRegions(ITEM_PLACEHOLDER) );
-		itemAnimationList.add(new Animation( 1/15f, ballAtlas.findRegions(ITEM_DOUBLESCORE) ));
+		itemAnimationList.add(new Animation( 1/15f, ballAtlas.findRegions(ITEM_GOLDENTOUCH) ));
 		itemAnimationList.add(new Animation( 1/15f, ballAtlas.findRegions(ITEM_VACUUM) ));
 	}
 	
 	public static Animation getItemPlaceHolderAnimation() {
 		return itemPlaceHolderAnimation;
 	}
+	
+	
 	
 	private static void loadSounds() {
 		ballCorrectPlopEffectSounds  = new Array<Sound>();

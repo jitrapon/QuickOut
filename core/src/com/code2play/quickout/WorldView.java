@@ -355,8 +355,12 @@ public class WorldView implements GestureListener {
 			
 			if (mouseJoint == null) {
 				for (Item item : level.getUnslottedItems()) {
-					// we don't check for slotted items
-					if (item.state == Item.SLOTTED) continue;
+					
+					// we don't check for slotted items or active items that have been slotted
+					if (item.state == Item.SLOTTED ||
+							item.slotted) {
+						continue;
+					}
 
 					Vector2 ballPos = new Vector2(item.x, item.y);
 					if (item.bounds().radius >= Math.abs(ballPos.dst(new Vector2(touchPos.x, touchPos.y)))) {
