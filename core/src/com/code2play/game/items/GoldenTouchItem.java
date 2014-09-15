@@ -13,30 +13,42 @@ public class GoldenTouchItem extends Item {
 	
 	private LabelStyle defaultScoreStyle;
 	private LabelStyle newScoreStyle;
+	
+	private LabelStyle defaultScoreEffectStyle;
+	private LabelStyle newScoreEffectStyle;
 
 	public GoldenTouchItem(Animation animation, float radius, ItemType type,
 			float maxDuration, float lifeTime, Level level) {
 		super(animation, radius, type, maxDuration, lifeTime, level);
+		
 		defaultScoreStyle = level.getWorldRenderer().getGameHUD().getScoreStyle();
 		newScoreStyle = new LabelStyle(defaultScoreStyle);
 		newScoreStyle.fontColor = Color.BLUE;
+		
+		defaultScoreEffectStyle = level.getWorldRenderer().getGameHUD().getScoreEffectStyle();
+		newScoreEffectStyle = new LabelStyle(defaultScoreEffectStyle);
+		newScoreEffectStyle.fontColor = Color.BLUE;
+		
 		System.out.println("Spawning Golden Touch!");
 	}
 
 	@Override
 	public void onEffectStarted(float delta) {
 		level.getWorldRenderer().getGameHUD().setScoreStyle(newScoreStyle);
+		level.getWorldRenderer().getGameHUD().setScoreEffectStyle(newScoreEffectStyle);
+		level.itemGoldenTouchActive = true;
 	}
 	
 
 	@Override
-	public void applyEffect(float delta) {
-	}
+	public void applyEffect(float delta) {}
 
 	
 	@Override
 	public void onEffectFinished(float delta) {
 		level.getWorldRenderer().getGameHUD().setScoreStyle(defaultScoreStyle);
+		level.getWorldRenderer().getGameHUD().setScoreEffectStyle(defaultScoreEffectStyle);
+		level.itemGoldenTouchActive = false;
 	}
 
 }

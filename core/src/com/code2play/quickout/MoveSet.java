@@ -32,6 +32,9 @@ public class MoveSet {
 	
 	/** Indicates whether move icons need to be redrawn **/
 	private boolean redraw;
+	
+	/** Last correct move type **/
+	private int correctMoveType;
 
 
 	public MoveSet() {
@@ -52,6 +55,7 @@ public class MoveSet {
 	public boolean validate(int ballTag, int ballState) {
 		boolean correctMove = false;
 		Move move =  moves.get(index);
+		correctMoveType = ballState;
 		if (moveEqualsState( move.moveType, ballState) ) {
 			
 			// wildcard ball
@@ -77,6 +81,18 @@ public class MoveSet {
 
 		correct = correctMove;
 		return correctMove;
+	}
+	
+	public int getLastCorrectMoveType() {
+		return correctMoveType;
+	}
+	
+	/**
+	 * Force to set the moveset to be correct
+	 * @param correct
+	 */
+	public void setCorrect(boolean correct) {
+		this.correct = correct;
 	}
 
 	/**
@@ -113,6 +129,7 @@ public class MoveSet {
 			correct = false;
 			redraw = true;							// need this because cannot call GameHud functions here, 
 													// since it is not initialized yet on the first call
+			correctMoveType = -1;
 		}
 	}
 	

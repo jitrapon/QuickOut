@@ -91,6 +91,14 @@ public class GameHud implements IHud {
 		score.setStyle(style);
 	}
 	
+	public LabelStyle getScoreEffectStyle() {
+		return style;
+	}
+	
+	public void setScoreEffectStyle(LabelStyle style) {
+		this.style = style;
+	}
+	
 	/** fill content of the stage **/
 	private void fillContent() {
 		// create a score label

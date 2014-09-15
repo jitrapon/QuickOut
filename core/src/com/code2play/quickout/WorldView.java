@@ -232,7 +232,7 @@ public class WorldView implements GestureListener {
 	}
 	
 	public void drawItems() {
-		Iterator<Item> iter = level.getUnslottedItems().iterator();
+		Iterator<Item> iter = level.getItems().iterator();
 		while (iter.hasNext()) {
 			Item item = iter.next();
 			
@@ -277,7 +277,7 @@ public class WorldView implements GestureListener {
 	@Override
 	public boolean tap(float x, float y, int count, int button) {
 //				Gdx.app.log("Tap", x + ", " + y);
-		for (Item item : level.getUnslottedItems()) {
+		for (Item item : level.getItems()) {
 			ballPos.set(item.x, item.y);
 			touchPos.set(x, y, 0);
 			camera.unproject(touchPos);
@@ -326,45 +326,21 @@ public class WorldView implements GestureListener {
 		//		Gdx.app.log("pan", x + ", " + y + ", delta(" + deltaX + ", " + deltaY + ")");
 		touchPos.set(x, y, 0);
 		camera.unproject(touchPos);
-
-		// if we haven't started dragging yet
+		
 		if (mouseJoint == null) {
-			for (Ball b : level.getBalls()) {
-				Vector2 ballPos = new Vector2(b.x, b.y);
-				if (b.bounds().radius >= Math.abs(ballPos.dst(new Vector2(touchPos.x, touchPos.y)))) {
-					b.setState(Ball.DRAGGED);
-					//				b.moveTo(touchPos.x, touchPos.y);
-
-					// init mousejoint
-					MouseJointDef mJointDef = new MouseJointDef();
-					mJointDef.bodyA = level.getGroundBody();
-					mJointDef.bodyB = b.getBody();
-					mJointDef.dampingRatio = 0.0f;
-					//					mJointDef.frequencyHz = 0.2f;
-					mJointDef.collideConnected = true;
-					mJointDef.target.set(touchPos.x * level.getWorldToBoxMultiplier(), touchPos.y * level.getWorldToBoxMultiplier());
-					mJointDef.maxForce = 500.0f * b.getBody().getMass();
-
-					mouseJoint = (MouseJoint)level.getPhysicsWorld().createJoint(mJointDef);
-					b.getBody().setAwake(true);
-
-					draggedBall = b;
-					break;
+			for (Item item : level.getItems()) {
+				
+				// we don't check for slotted items or active items that have been slotted
+				if (item.state == Item.SLOTTED ||
+						item.slotted) {
+					continue;
 				}
-			}
-			
-			if (mouseJoint == null) {
-				for (Item item : level.getUnslottedItems()) {
-					
-					// we don't check for slotted items or active items that have been slotted
-					if (item.state == Item.SLOTTED ||
-							item.slotted) {
-						continue;
-					}
 
-					Vector2 ballPos = new Vector2(item.x, item.y);
-					if (item.bounds().radius >= Math.abs(ballPos.dst(new Vector2(touchPos.x, touchPos.y)))) {
+				Vector2 ballPos = new Vector2(item.x, item.y);
+				if (item.bounds().radius >= Math.abs(ballPos.dst(new Vector2(touchPos.x, touchPos.y)))) {
 
+					if (item.getBody() != null) {
+						
 						// init mousejoint
 						MouseJointDef mJointDef = new MouseJointDef();
 						mJointDef.bodyA = level.getGroundBody();
@@ -384,6 +360,34 @@ public class WorldView implements GestureListener {
 					}
 				}
 			}
+			
+			// if we haven't started dragging yet
+			if (mouseJoint == null) {
+				for (Ball b : level.getBalls()) {
+					Vector2 ballPos = new Vector2(b.x, b.y);
+					if (b.bounds().radius >= Math.abs(ballPos.dst(new Vector2(touchPos.x, touchPos.y)))) {
+						b.setState(Ball.DRAGGED);
+						//				b.moveTo(touchPos.x, touchPos.y);
+
+						// init mousejoint
+						MouseJointDef mJointDef = new MouseJointDef();
+						mJointDef.bodyA = level.getGroundBody();
+						mJointDef.bodyB = b.getBody();
+						mJointDef.dampingRatio = 0.0f;
+						//					mJointDef.frequencyHz = 0.2f;
+						mJointDef.collideConnected = true;
+						mJointDef.target.set(touchPos.x * level.getWorldToBoxMultiplier(), touchPos.y * level.getWorldToBoxMultiplier());
+						mJointDef.maxForce = 500.0f * b.getBody().getMass();
+
+						mouseJoint = (MouseJoint)level.getPhysicsWorld().createJoint(mJointDef);
+						b.getBody().setAwake(true);
+
+						draggedBall = b;
+						break;
+					}
+				}
+			}
+			
 			//			Gdx.app.log("Drag", "Drag position is " + touchPos.x + ", " + touchPos.y);
 		}
 

@@ -18,8 +18,8 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
-import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Array.ArrayIterator;
 import com.code2play.game.IGameManager;
 import com.code2play.game.items.GoldenTouchItem;
 import com.code2play.game.items.VacuumItem;
@@ -48,7 +48,7 @@ public class Level implements IGameManager {
 	public static final float BOX_TO_WORLD = 75.0f;	
 
 	/* This level's constants */
-	public boolean gravityEnabled = false;
+	public boolean gravityEnabled = true;
 	private static final float BALL_RADIUS = 75.0f;
 	public static final float ITEM_RADIUS = 50.0f;
 	public static final int MAX_NUM_OBJECT_ONSCREEN = 17;						// maximum number of spawnable objects onscreen at this level
@@ -76,6 +76,9 @@ public class Level implements IGameManager {
 																				// to be used for rendering
 	private ItemSlot itemSlot;													// storing items
 	private Array<Item> items;
+	private ArrayIterator<Item> itemIter1;
+	private ArrayIterator<Item> itemIter2;
+	private Array<ItemType> activeItemEffects;									// keeps track of currently active items
 	private Body groundBody;													// used as anchor for mousejoint only
 
 	/* Ball Type Constants */ 
@@ -140,8 +143,11 @@ public class Level implements IGameManager {
 		world.setContactListener(bListener);
 		balls = new Array<Ball>(MAX_NUM_OBJECT_ONSCREEN);
 		items = new Array<Item>();
+		activeItemEffects = new Array<ItemType>();
 		ballPoints = new Array<ScoreIndicator>(MAX_NUM_OBJECT_ONSCREEN);
 		itemSlot = new ItemSlot(MAX_NUM_ITEMS);
+		itemIter1 = new ArrayIterator<Item>(items);
+		itemIter2 = new ArrayIterator<Item>(items);
 	}
 	
 	public int getScore() {
@@ -474,7 +480,7 @@ public class Level implements IGameManager {
 		return ballPoints;
 	}
 	
-	public Array<Item> getUnslottedItems() {
+	public Array<Item> getItems() {
 		return items;
 	}
 
@@ -488,6 +494,8 @@ public class Level implements IGameManager {
 	float comboTimer = 0f;
 	boolean hasNotSpawnedItem = false;
 	Array<Ball> collidedBalls = new Array<Ball>();
+	
+	public boolean itemGoldenTouchActive = false;
 	
 	int itemSize = -1;
 	
@@ -514,8 +522,14 @@ public class Level implements IGameManager {
 //				iter.remove();													//TODO this may have to be moved to WorldView.render()
 				if (spawnTime > RESPAWN_TIME) spawnTime = 0.0f;					// reset spawn timer
 				
+				// calculate score based on input quickness
 				scoreAdder = getScoreAdderFromTimeLapsed(moveChangeTimer);
-
+				
+				/****************************
+				 * ITEM: GOLDEN TOUCH LOGIC
+				 ****************************/
+				if (itemGoldenTouchActive) scoreAdder *= 2;
+				
 				// no need to validate action on collision hits
 				if (!ball.hasCollidedCorrectly) {
 					
@@ -547,7 +561,9 @@ public class Level implements IGameManager {
 					ballCount+=1;												// use 1 because it is a variable!
 					ballPoints.add(new ScoreIndicator(ball.x, ball.y, scoreAdder*2));
 					comboScore+=1;
+					comboTimer = 0f;
 					hasNotSpawnedItem = true;
+//					moveSet.setCorrect(true);
 					
 					if (collidedBalls.contains(ball, true)) {
 //						//TODO spawn new ball of the indicated color
@@ -564,8 +580,11 @@ public class Level implements IGameManager {
 		// spawn entities if current num is less than max value
 		if (numBall < MAX_NUM_OBJECT_ONSCREEN && spawnMoreBalls) {
 			if (spawnTime > RESPAWN_TIME) {
+				//spawn the current one in the moveset
 				anim = getNextAnimationSet();
 				b = spawnBall(anim, -1.0f, currBallType);
+//				anim = getAnimationSet(moveSet.getMoves().first().ballType);
+//				b = spawnBall(anim, -1.0f, moveSet.getMoves().first().ballType);
 				b.setVelocity( new Vector2( (random.nextFloat()*MAX_SPEED) - 5.0f, (random.nextFloat()*MAX_SPEED) - 5.0f) );
 				spawnTime = 0.0f;					// reset spawn timer
 			}
@@ -575,7 +594,9 @@ public class Level implements IGameManager {
 		// SET LEVEL's current ball indicator here
 		if (
 				moveChangeTimer > MOVE_CHANGE_TIME 
-				|| moveSet.isCorrect()
+//				|| moveSet.isCorrect()
+				|| !ballsContainsType(moveSet.getMoves().first().ballType)
+				|| moveSet.getLastCorrectMoveType() == Ball.FLINGED
 				) {
 			if (moveChangeTimer > MOVE_CHANGE_TIME) {
 				ballCount = ballCount-3 < 0? 0 : ballCount-3;
@@ -586,25 +607,24 @@ public class Level implements IGameManager {
 		
 		// Update items and their effects
 		//TODO end item's effect prematurely when another item of the same type is active
-		Iterator<Item> itemIter = items.iterator();
-		while (itemIter.hasNext()) {
-			Item item = itemIter.next();
+		while (itemIter1.hasNext()) {
+			Item item = itemIter1.next();
 			item.update(delta);
-			System.out.println("Duration = " + item.stateTime);
 			
 			// remove objects that are flagged as removed
 			if (item.removed) {
 			}
 		}
+		itemIter1.reset();
 		
 		//TODO Spawn new items based on combo
 		//reset combo if inactive for a 
-		if (comboTimer > 3.5f) {
+		if (comboTimer > 4.5f) {
 			comboScore = 0;
 			comboTimer = 0f;
 		}
 		
-		if (comboScore > 0 && comboScore % 5 == 0 && hasNotSpawnedItem) {
+		if (comboScore > 0 && comboScore % 7 == 0 && hasNotSpawnedItem) {
 			spawnItem(Assets.itemAnimationList.random(), 5f, 5f);
 			hasNotSpawnedItem = false;
 		}
@@ -615,8 +635,68 @@ public class Level implements IGameManager {
 		moveChangeTimer += delta;
 		time += delta;
 		comboTimer += delta;
+		
+		// debug print
+		if (itemSize != items.size) {
+			System.out.println(items.size);
+			itemSize = items.size;
+		}
 	}
-
+	
+	/**
+	 * Resets the timer of the item effect. This is called when another type of the same item
+	 * is active. Returns true if another item is reset. False if no items of the same type found active.
+	 * TODO
+	 * @param itemType
+	 */
+	public boolean resetItemEffectDuration(Item item) {
+		while (itemIter2.hasNext()) {
+			Item i = itemIter2.next();
+			if (i.type == item.type && i.isActive()) {
+				itemIter2.reset();
+				
+				// found itself first, then this is the item in effect
+				if (i == item) {
+					return false;
+				}
+				
+				// if we don't find itself first, that means this item is a duplicate
+				else  {
+					System.out.println("Reset item timer of item " + i.hashCode());
+					i.stateTime = 0f;
+					return true;
+				}
+			}
+		}
+		itemIter2.reset();
+		return false;
+	}
+	
+	public Array<ItemType> getActiveItemEffects() {
+		return activeItemEffects;
+	}
+	
+	/**
+	 * Add this item's active effect to the list of all active effects.
+	 * Duplicated effect will not stack, but rather extend the duration of the effect. 
+	 * @param itemType
+	 */
+	public void addItemEffect(ItemType itemType) {
+		if (!activeItemEffects.contains(itemType, true))
+			activeItemEffects.add(itemType);
+		else {
+			
+		}
+	}
+	
+	private boolean ballsContainsType(int ballType) {
+		for (Ball b : balls) {
+			if (b.tag == ballType) 
+				return true;
+		}
+		return false;
+	}
+	
 	public int getComboScore() {
 		return comboScore;
 	}

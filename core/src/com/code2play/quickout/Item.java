@@ -35,6 +35,8 @@ public abstract class Item extends Entity implements IGameItem {
 	public static final int ACTIVE = 0;					// indicates the item is just being tapped and active
 	public static final int FLINGED = 1;				// indicates the item is just being flinged
 	public static final int SLOTTED = 2;				// indicates the item is slotted
+	
+	/* other properties */
 
 	/**
 	 * Initializes a generic item.
@@ -74,7 +76,8 @@ public abstract class Item extends Entity implements IGameItem {
 	 */
 	public void setActive(boolean isActive) {
 		active = isActive;
-		setState(ACTIVE);
+		if (isActive) setState(ACTIVE);
+		else setState(INACTIVE);
 	}
 	
 
@@ -162,23 +165,27 @@ public abstract class Item extends Entity implements IGameItem {
 
 		/* the item is tapped and now its effect is active */
 		case ACTIVE:
-//			removed = true;
+			if (body != null) 
+				dispose();
 			
+			if (level.resetItemEffectDuration(this)) {
+				removed = true;
+				return;
+			}
+			
+			// called in the beginning of the effect
 			if (beginActive) {
 				onEffectStarted(delta);
 				beginActive = false;
 			}
 			
+			// while still in duration, call active effect
 			if (stateTime > MAX_DURATION) {
 				this.removed = true;
 				onEffectFinished(delta);
 			}
-			
 			else 
 				applyEffect(delta);
-			
-			if (body != null) 
-				dispose();
 			
 			return;
 

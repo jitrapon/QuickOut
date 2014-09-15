@@ -14,7 +14,7 @@ OpenSource under Apache License
 Sample object theme: animals and balloons
 
 Gameplay: Objects appear in the screen randomly each level. On the top of the screen, 
-there is a copy of one of the objects onscreen that will appear and vanish. Your goal is to burst the matching objects (in queue, or as many as possible before it changes). Burst a number of objects to end the round.
+there is a copy of one of the objects onscreen that will appear and vanish. Your goal is to burst the matching objects until they disappear from the screen. Drag object out of the screen to change the goal immediately. Burst a number of objects to end the round.
 
 Points will be scored based on how fast you burst them, the time left after the round ends, and the maximum combos you have achieved.
 
@@ -65,6 +65,7 @@ Bonus object:
 12. wild card (Wildcard)
 13. extends time by x seconds (Need More Time)
 14. more balls! (Populator)
+15. click-to-spawn ball (Popper)
 
 Round rules:
 1. Combo enabled
