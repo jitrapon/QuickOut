@@ -1,6 +1,9 @@
 package com.code2play.game.items;
 
 import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
+import com.code2play.quickout.Ball;
 import com.code2play.quickout.Item;
 import com.code2play.quickout.Level;
 import com.code2play.quickout.Level.ItemType;
@@ -15,22 +18,38 @@ public class VacuumItem extends Item {
 
 	@Override
 	public void onEffectStarted(float delta) {
-		// TODO Auto-generated method stub
-		
+		level.itemVacuumActive = true;
 	}
 	
 
+	Vector2 vec = new Vector2();
 	@Override
 	public void applyEffect(float delta) {
-		// TODO Auto-generated method stub
-
+		if (level.itemVacuumActive && level.itemVacuumApplied) {
+			for (Ball b : level.getBalls()) {
+				if (!b.removed && b.tag == level.getMoveSet().getMoves().first().ballType) {
+					
+					if (b.getBody().getPosition().epsilonEquals(level.vacuumPos.x*Level.WORLD_TO_BOX, 
+							level.vacuumPos.y*Level.WORLD_TO_BOX, 0.5f)) {
+						b.setState(Ball.TAPPED);
+					}
+					else {
+						vec.set((level.vacuumPos.x*Level.WORLD_TO_BOX) - b.getBody().getPosition().x,
+								(level.vacuumPos.y*Level.WORLD_TO_BOX) - b.getBody().getPosition().y);
+						
+//						b.getBody().applyForceToCenter(vec.scl(3f), true);
+						b.getBody().setLinearVelocity(vec.nor().scl(15f));
+//						b.getBody().setLinearVelocity(vec.scl(3f));
+					}
+				}
+			}
+		}
 	}
 
 	
 	@Override
 	public void onEffectFinished(float delta) {
-		// TODO Auto-generated method stub
-		
+		level.itemVacuumActive = false;
 	}
 
 

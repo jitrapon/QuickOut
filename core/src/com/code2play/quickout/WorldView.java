@@ -45,6 +45,10 @@ public class WorldView implements GestureListener {
 
 	/** our mouse joint **/
 	protected MouseJoint mouseJoint = null;
+	
+	/** placeholder vectors **/
+	private Vector3 touchPos = new Vector3();
+	private Vector2 ballPos = new Vector2();
 
 	/** Game HUD, the game hud is an abstract representation of the Scene2D stage **/
 	private GameHud gameHud;	
@@ -179,8 +183,9 @@ public class WorldView implements GestureListener {
 		gameHud.draw(delta);
 
 		// process user input
-		// player has tapped the screen
-		if (Gdx.input.justTouched()) {
+		// player has touched the screen
+		if (!Gdx.input.isTouched() && level.itemVacuumApplied) {
+			level.itemVacuumApplied = false;
 		}
 
 		// for gravity-enabled levels
@@ -266,33 +271,48 @@ public class WorldView implements GestureListener {
 		Gdx.app.log("DISPOSING", "Released worldview resources");
 	}
 
-	Vector3 touchPos = new Vector3();
-	Vector2 ballPos = new Vector2();
-
 	@Override
 	public boolean touchDown(float x, float y, int pointer, int button) {
+		touchPos.set(x, y, 0);
+		camera.unproject(touchPos);
+//		System.out.println("TouchDown (" + touchPos.x + ", " + touchPos.y + ") pointer: " + pointer + " button: " + button);
+		
+		if (level.itemVacuumActive) {
+			if (!outWorldBoundary(touchPos)) {
+				level.itemVacuumApplied = true;
+				level.vacuumPos.set(touchPos);
+			}
+		}
 		return false;
 	}
-
+	
+	public boolean outWorldBoundary(Vector3 touchPos) {
+		return (touchPos.x < level.getMinX() || touchPos.x > level.getMaxX()
+				|| touchPos.y < level.getMinY() || touchPos.y > level.getMaxY());
+	}
+	
+	
 	@Override
 	public boolean tap(float x, float y, int count, int button) {
 //				Gdx.app.log("Tap", x + ", " + y);
+//		System.out.println("tap (" + x + ", " + y + ")");
+		touchPos.set(x, y, 0);
+		camera.unproject(touchPos);
 		for (Item item : level.getItems()) {
-			ballPos.set(item.x, item.y);
-			touchPos.set(x, y, 0);
-			camera.unproject(touchPos);
-			if (item.radius >= Math.abs(ballPos.dst(new Vector2(touchPos.x, touchPos.y))))  {
-				item.setActive(true);
-				return false;
+			if (!item.isActive()) {
+				ballPos.set(item.x, item.y);
+				if (item.radius >= Math.abs(ballPos.dst(new Vector2(touchPos.x, touchPos.y))))  {
+					item.setActive(true);
+					return false;
+				}
 			}
 		}
 		
 		for (Ball b : level.getBalls()) {
 			ballPos.set(b.x, b.y);
-			touchPos.set(x, y, 0);
-			camera.unproject(touchPos);
 			if (b.radius >= Math.abs(ballPos.dst(new Vector2(touchPos.x, touchPos.y))))  {
 				b.setState(Ball.TAPPED);
+				return false;
 			}
 		}
 		
@@ -302,10 +322,11 @@ public class WorldView implements GestureListener {
 	@Override
 	public boolean longPress(float x, float y) {
 		//		Gdx.app.log("Long Press", x + ", " + y);
+		touchPos.set(x, y, 0);
+		camera.unproject(touchPos);
+		System.out.println("Long Press");
 		for (Ball b : level.getBalls()) {
 			ballPos.set(b.x, b.y);
-			touchPos.set(x, y, 0);
-			camera.unproject(touchPos);
 			if (b.radius >= Math.abs(ballPos.dst(new Vector2(touchPos.x, touchPos.y))))  {
 				b.setState(Ball.LONG_TAPPED);
 			}
@@ -324,6 +345,12 @@ public class WorldView implements GestureListener {
 	@Override
 	public boolean pan(float x, float y, float deltaX, float deltaY) {
 		//		Gdx.app.log("pan", x + ", " + y + ", delta(" + deltaX + ", " + deltaY + ")");
+		
+		// disable vacuum effect is move
+		if (level.itemVacuumActive && level.itemVacuumApplied) {
+			return false;
+		}
+		
 		touchPos.set(x, y, 0);
 		camera.unproject(touchPos);
 		

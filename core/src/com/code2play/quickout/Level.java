@@ -7,6 +7,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
@@ -64,6 +65,10 @@ public class Level implements IGameManager {
 	private static final int MAX_NUM_ITEMS = 3;									// maximum number of item slots
 	
 	/* Item's effect variables */
+	public boolean itemGoldenTouchActive = false;								// indicates whether golden touch effect is applied
+	public boolean itemVacuumActive = false;									// indicates whether vacuum effect is applied
+	public boolean itemVacuumApplied = false;
+	public Vector3 vacuumPos = new Vector3();
 
 	/* Some variables */
 	private float time = 0;														// current time elapsed since the start of the level
@@ -321,8 +326,8 @@ public class Level implements IGameManager {
 	 * @param lifeTime
 	 * @return
 	 */
-	public Item spawnItem(Animation animation, float maxDuration, float lifeTime) {
-		Item item = getItem(animation, ITEM_RADIUS, maxDuration, lifeTime, this);
+	public Item spawnItem(Animation animation) {
+		Item item = getItem(animation, ITEM_RADIUS, this);
 		float posX = getRandomCoordinate(item.radius, VIRTUAL_WIDTH-item.radius);
 //		float posY = getRandomCoordinate(item.radius + GROUND_HEIGHT, VIRTUAL_HEIGHT-item.radius);
 		float posY = VIRTUAL_HEIGHT;
@@ -340,11 +345,11 @@ public class Level implements IGameManager {
 	 * @param lifeTime
 	 * @return
 	 */
-	private Item getItem(Animation animation, float radius, float maxDuration, float lifeTime, Level level) {
+	private Item getItem(Animation animation, float radius, Level level) {
 		if (animation.equals(Assets.itemAnimationList.get(0)))
-			return new GoldenTouchItem(animation, radius, ItemType.GOLDEN_TOUCH, maxDuration, lifeTime, level);
+			return new GoldenTouchItem(animation, radius, ItemType.GOLDEN_TOUCH, 7f, 5f, level);
 		else if (animation.equals(Assets.itemAnimationList.get(1)))
-			return new VacuumItem(animation, radius, ItemType.VACUUM, maxDuration, lifeTime, level);
+			return new VacuumItem(animation, radius, ItemType.VACUUM, 7f, 5f, level);
 		else 
 			return null;
 	}
@@ -495,8 +500,6 @@ public class Level implements IGameManager {
 	boolean hasNotSpawnedItem = false;
 	Array<Ball> collidedBalls = new Array<Ball>();
 	
-	public boolean itemGoldenTouchActive = false;
-	
 	int itemSize = -1;
 	
 	/** Called when the World is to be updated.
@@ -625,7 +628,7 @@ public class Level implements IGameManager {
 		}
 		
 		if (comboScore > 0 && comboScore % 7 == 0 && hasNotSpawnedItem) {
-			spawnItem(Assets.itemAnimationList.random(), 5f, 5f);
+			spawnItem(Assets.itemAnimationList.random());
 			hasNotSpawnedItem = false;
 		}
 		

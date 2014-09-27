@@ -157,6 +157,23 @@ public abstract class Item extends Entity implements IGameItem {
 	@Override
 	public void update(float delta) {
 		
+		// out of time
+		if (lifeTime <= 0f) {
+			
+			// get rid of mousejoint
+			if (level.getWorldRenderer().mouseJoint != null) {
+				level.getWorldRenderer().draggedItem = null;
+				level.getPhysicsWorld().destroyJoint(level.getWorldRenderer().mouseJoint);
+				level.getWorldRenderer().mouseJoint = null;
+			} 
+			
+			if (body != null) 
+				dispose();
+			
+			removed = true;
+			return;
+		}
+		
 		// update state time
 		stateTime += delta;
 
@@ -229,6 +246,7 @@ public abstract class Item extends Entity implements IGameItem {
 
 		/* default state is INACTIVE */
 		default:
+			lifeTime -= delta;
 			break;
 		}
 
