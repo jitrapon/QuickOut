@@ -36,32 +36,44 @@ public class GameHud implements IHud {
 	
 	private Stage stage;
 	
+	// score
 	private ScoreLabel score;										// displays current game level score
 	private LabelStyle scoreStyle;
 	private BitmapFont scoreFont;
 	
+	// combo score
 	private ComboScoreLabel combo;									// displays current game combo score
 	
+	// level ball counter
 	private CounterLabel counter;
 	private BitmapFont countFont;
 	private LabelStyle countStyle;
 	
+	// move icons
 	private Group moveIconGroup;
 	private AnimatedImage prevIcon1;
 	private AnimatedImage moveIcon1;
 	private AnimatedImage moveIcon2;
 	private AnimatedImage moveIcon3;
 	
+	// move icons
 	private AnimatedImage nextMoveIcon1;
 	private AnimatedImage nextMoveIcon2;
 	private AnimatedImage nextMoveIcon3;
 	
+	// score
 	private Group scoreEffectGroup;
 	private LabelStyle style;
 	private LabelStyle penaltyStyle;
 	private BitmapFont font;
 	
+	// item slots
 	private Group itemSlotGroup;
+	
+	// round timer
+	private TimerLabel timer;
+	private LabelStyle timerStyle;
+	private BitmapFont timerFont;
 	
 	private Image bottomHud;
 	private Group topHud;						
@@ -120,6 +132,14 @@ public class GameHud implements IHud {
 		
 		counter = new CounterLabel(level, "0", countStyle);
 		counter.setPosition(stage.getWidth()-100, stage.getHeight()-70);
+		
+		// create a timer label
+		timerFont = new BitmapFont();
+		timerFont.scale(1f);
+		timerStyle = new LabelStyle(timerFont, Color.WHITE);
+		
+		timer = new TimerLabel(level, "0", timerStyle);
+		timer.setPosition(stage.getWidth()/2 - 18, stage.getHeight()-130);
 		
 		// create ground HUD
 		bottomHud = new Image(Assets.getTextureRegion(Assets.LEVEL_HUD_GROUND));
@@ -230,6 +250,7 @@ public class GameHud implements IHud {
 		stage.addActor(score);
 		stage.addActor(combo);
 		stage.addActor(moveIconGroup);
+		stage.addActor(timer);
 		stage.addActor(scoreEffectGroup);
 		stage.addActor(bottomHud);
 		stage.addActor(itemSlotGroup);
@@ -382,6 +403,7 @@ public class GameHud implements IHud {
 		font.dispose();
 		scoreFont.dispose();
 		countFont.dispose();
+		timerFont.dispose();
 		stage.dispose();
 	}
 	

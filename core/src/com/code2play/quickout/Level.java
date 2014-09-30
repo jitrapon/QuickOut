@@ -24,6 +24,7 @@ import com.badlogic.gdx.utils.Array.ArrayIterator;
 import com.code2play.game.IGameManager;
 import com.code2play.game.items.GoldenTouchItem;
 import com.code2play.game.items.VacuumItem;
+import com.code2play.quickout.GameMain.GameMode;
 
 /**
  * Level contains the world that Entities live in.
@@ -47,22 +48,33 @@ public class Level implements IGameManager {
 
 	public static final float WORLD_TO_BOX = 1/75f;		
 	public static final float BOX_TO_WORLD = 75.0f;	
+	
+	/* Game mode and some variables*/
+	private GameMode gameMode;													// current level's game mode
+	private int exitCode;														// current level's exit code
+	public static final int DEFAULT_EXIT = -1;									// no exit code yet
+	public static final int NORMAL_MODE_EXIT = 100;							// ending of a normal mode game
+	public static final int TIME_MODE_TIMEOUT = 101;							// ending of a time mode with timeout
+	public static final int TIME_MODE_ACHIEVED = 102;							// ending of a time mode with ball count achieved
+	public static final int FORCED_EXIT = 103;									// ending of any mode with user forcing exit mid-game
 
 	/* This level's constants */
 	public boolean gravityEnabled = true;
 	private static final float BALL_RADIUS = 75.0f;
 	public static final float ITEM_RADIUS = 50.0f;
-	public static final int MAX_NUM_OBJECT_ONSCREEN = 17;						// maximum number of spawnable objects onscreen at this level
+	public static final int MAX_NUM_OBJECT_ONSCREEN = 30;						// maximum number of spawnable objects onscreen at this level
 	public static final int VIRTUAL_WIDTH = 900;								// the screen width in world's coordinate
 	public static final int VIRTUAL_HEIGHT = 1600;								// the screen height in world's coordinate
 	public static final int MAX_VIRTUAL_WIDTH = 1200;
 	public static final int MAX_VIRTUAL_HEIGHT = 1600;
 	private static final float MAX_SPEED = 20.0f;								// the maximum speed of any ball
-	public static final float MAX_LEVEL_TIME = 15.0f;							// duration of this level in seconds
-	private static final float RESPAWN_TIME = 0.25f;							// time in seconds before the next respawn
+	public static final float MAX_LEVEL_TIME = 45.0f;							// duration of this level in seconds
+	private float timeLeft;														// time left in this level round
+	private static final float RESPAWN_TIME = 0.5f;								// time in seconds before the next respawn
 	private static final float MOVE_CHANGE_TIME = 6.5f;							// if used, indicates the time in seconds before the next moveset is changed
 	public boolean spawnMoreBalls = true;										// indicates whether to continue spawning more balls
 	private static final int MAX_NUM_ITEMS = 3;									// maximum number of item slots
+	public static final int TIME_MODE_MAX_COUNT = 150;							// time mode max ball count
 	
 	/* Item's effect variables */
 	public boolean itemGoldenTouchActive = false;								// indicates whether golden touch effect is applied
@@ -139,10 +151,12 @@ public class Level implements IGameManager {
 
 	/**
 	 * Default ctor
+	 * @param mode 
 	 */
-	public Level() {
+	public Level(GameMode mode) {
 		// construct the world object. this object contains all physics objects/bodies and simulates
 		// interactions between them. 
+		gameMode = mode;
 		world = new World(gravity, false);
 		bListener = new CollisionListener();
 		world.setContactListener(bListener);
@@ -235,6 +249,10 @@ public class Level implements IGameManager {
 			return Assets.animationList.get(index);
 		}
 	}
+	
+	public int getExitCode() {
+		return exitCode;
+	}
 
 	
 	/**
@@ -274,6 +292,10 @@ public class Level implements IGameManager {
 		
 		moveSet = new MoveSet();
 		moveSet.setMoveset(true);
+		
+		timeLeft = MAX_LEVEL_TIME;
+		
+		exitCode = DEFAULT_EXIT;
 	}
 	
 	public MoveSet getMoveSet() {
@@ -488,6 +510,10 @@ public class Level implements IGameManager {
 	public Array<Item> getItems() {
 		return items;
 	}
+	
+	public float getTimeLeft() {
+		return timeLeft;
+	}
 
 	Random random = new Random();
 	Texture texture = null;
@@ -506,6 +532,31 @@ public class Level implements IGameManager {
 	 * @param delta the time in seconds since the last render. */
 	@Override
 	public void update(float delta) {
+		
+		// check goal conditions depending on game mode
+		switch (gameMode) {
+		case NORMAL:
+			if (timeLeft <= 0f) {
+				System.out.println("Time is up!");
+				exitCode = NORMAL_MODE_EXIT;
+			}
+			break;
+		case TIMED:
+			if (timeLeft <= 0f) {
+				System.out.println("Time is up! Game Over!");
+				exitCode = TIME_MODE_TIMEOUT;
+			}
+			else 
+				if (ballCount >= TIME_MODE_MAX_COUNT) {
+					System.out.println("You have reached " + TIME_MODE_MAX_COUNT + " balls!");
+					exitCode = TIME_MODE_ACHIEVED;
+				}
+			break;
+		default:
+			exitCode = FORCED_EXIT;
+			break;
+		}
+		
 		// step through the physics framework to calculate the next frame
 		world.step(timeStep, velocityIterations, positionIterations);
 
@@ -581,7 +632,8 @@ public class Level implements IGameManager {
 		collidedBalls.clear();
 
 		// spawn entities if current num is less than max value
-		if (numBall < MAX_NUM_OBJECT_ONSCREEN && spawnMoreBalls) {
+		if (numBall < MAX_NUM_OBJECT_ONSCREEN && spawnMoreBalls
+				&& exitCode == DEFAULT_EXIT) {
 			if (spawnTime > RESPAWN_TIME) {
 				//spawn the current one in the moveset
 				anim = getNextAnimationSet();
@@ -592,14 +644,20 @@ public class Level implements IGameManager {
 				spawnTime = 0.0f;					// reset spawn timer
 			}
 		}
+		
+		// penalty for reaching max number of screen
+		else {
+			//TODO explode all
+		}
 
 		//TODO set current level's objective if the timer is up
 		// SET LEVEL's current ball indicator here
 		if (
-				moveChangeTimer > MOVE_CHANGE_TIME 
+				(moveChangeTimer > MOVE_CHANGE_TIME 
 //				|| moveSet.isCorrect()
 				|| !ballsContainsType(moveSet.getMoves().first().ballType)
-				|| moveSet.getLastCorrectMoveType() == Ball.FLINGED
+				|| moveSet.getLastCorrectMoveType() == Ball.FLINGED)
+				&& exitCode == DEFAULT_EXIT
 				) {
 			if (moveChangeTimer > MOVE_CHANGE_TIME) {
 				ballCount = ballCount-3 < 0? 0 : ballCount-3;
@@ -621,8 +679,8 @@ public class Level implements IGameManager {
 		itemIter1.reset();
 		
 		//TODO Spawn new items based on combo
-		//reset combo if inactive for a 
-		if (comboTimer > 4.5f) {
+		//reset combo if inactive for a period of time
+		if (comboTimer > 4.5f && exitCode == DEFAULT_EXIT) {
 			comboScore = 0;
 			comboTimer = 0f;
 		}
@@ -638,6 +696,9 @@ public class Level implements IGameManager {
 		moveChangeTimer += delta;
 		time += delta;
 		comboTimer += delta;
+		
+		// update level timeleft
+		if (exitCode == DEFAULT_EXIT) timeLeft -= delta;
 		
 		// debug print
 		if (itemSize != items.size) {
@@ -834,6 +895,6 @@ public class Level implements IGameManager {
 	@Override
 	public void exitGame() {
 		dispose();
-		Gdx.app.log("DISPOSING", "Released level resources");
+		System.out.println("Released level resources");
 	}
 }

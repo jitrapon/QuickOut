@@ -173,11 +173,23 @@ public class WorldView implements GestureListener {
 		
 		// draw unslotted items
 		drawItems();
+		
+		//TODO draw other animations
+//		drawAnimations();
 
 		/********************************
 		 * END GAME ENTITIES DRAWING
 		 *******************************/
 		batch.end();
+		
+		// check game mode termination
+		if (level.getExitCode() != Level.DEFAULT_EXIT) {
+			gestureDetector.cancel();
+			if  (mouseJoint != null) {
+				level.getPhysicsWorld().destroyJoint(mouseJoint);
+				mouseJoint = null;
+			}
+		}
 
 		// draw game HUD
 		gameHud.draw(delta);
@@ -226,7 +238,10 @@ public class WorldView implements GestureListener {
 				if (ball.correctMove || ball.hasCollidedCorrectly) Assets.getCorrectBallPlopSoundEffect().play();
 				else Assets.getWrongBallPlopSoundEffect().play();
 				
-				//TODO draw burst animation
+				//TODO draw burst 
+				//add to array of animations
+				
+				// remove this ball from list
 				iter.remove();
 			}
 			else {
@@ -275,7 +290,6 @@ public class WorldView implements GestureListener {
 	public boolean touchDown(float x, float y, int pointer, int button) {
 		touchPos.set(x, y, 0);
 		camera.unproject(touchPos);
-//		System.out.println("TouchDown (" + touchPos.x + ", " + touchPos.y + ") pointer: " + pointer + " button: " + button);
 		
 		if (level.itemVacuumActive) {
 			if (!outWorldBoundary(touchPos)) {
@@ -322,16 +336,16 @@ public class WorldView implements GestureListener {
 	@Override
 	public boolean longPress(float x, float y) {
 		//		Gdx.app.log("Long Press", x + ", " + y);
-		touchPos.set(x, y, 0);
-		camera.unproject(touchPos);
-		System.out.println("Long Press");
-		for (Ball b : level.getBalls()) {
-			ballPos.set(b.x, b.y);
-			if (b.radius >= Math.abs(ballPos.dst(new Vector2(touchPos.x, touchPos.y))))  {
-				b.setState(Ball.LONG_TAPPED);
-			}
-		}
-		return true;
+//		touchPos.set(x, y, 0);
+//		camera.unproject(touchPos);
+//		System.out.println("Long Press");
+//		for (Ball b : level.getBalls()) {
+//			ballPos.set(b.x, b.y);
+//			if (b.radius >= Math.abs(ballPos.dst(new Vector2(touchPos.x, touchPos.y))))  {
+//				b.setState(Ball.LONG_TAPPED);
+//			}
+//		}
+		return false;
 	}
 
 	@Override
@@ -346,13 +360,16 @@ public class WorldView implements GestureListener {
 	public boolean pan(float x, float y, float deltaX, float deltaY) {
 		//		Gdx.app.log("pan", x + ", " + y + ", delta(" + deltaX + ", " + deltaY + ")");
 		
-		// disable vacuum effect is move
-		if (level.itemVacuumActive && level.itemVacuumApplied) {
-			return false;
-		}
-		
 		touchPos.set(x, y, 0);
 		camera.unproject(touchPos);
+		
+		// disable vacuum effect is move
+		if (level.itemVacuumActive && level.itemVacuumApplied) {
+			if (!outWorldBoundary(touchPos)) {
+				level.vacuumPos.set(touchPos);
+			}
+			return false;
+		}
 		
 		if (mouseJoint == null) {
 			for (Item item : level.getItems()) {
@@ -452,6 +469,10 @@ public class WorldView implements GestureListener {
 			mouseJoint = null;
 		}
 		return false;
+	}
+	
+	public MouseJoint getMouseJoint() {
+		return mouseJoint;
 	}
 
 	@Override

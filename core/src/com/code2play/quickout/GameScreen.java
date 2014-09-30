@@ -3,17 +3,20 @@ package com.code2play.quickout;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.code2play.quickout.GameMain.GameMode;
 
 public class GameScreen implements Screen {
 
 	private GameMain game;
 	private Level level;
 	private WorldView worldView;
+	private GameMode gameMode;
 
-	public GameScreen(GameMain g) {
+	public GameScreen(GameMain g, GameMode mode) {
 		// game instance is the same one as the first created
+		gameMode = mode;
 		game = g;
-		level = new Level();
+		level = new Level(mode);
 		worldView = new WorldView(level);
 		level.setWorldRenderer(worldView);
 	}

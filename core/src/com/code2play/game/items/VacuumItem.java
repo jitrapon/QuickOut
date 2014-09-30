@@ -25,7 +25,8 @@ public class VacuumItem extends Item {
 	Vector2 vec = new Vector2();
 	@Override
 	public void applyEffect(float delta) {
-		if (level.itemVacuumActive && level.itemVacuumApplied) {
+		if (level.itemVacuumActive && level.itemVacuumApplied && 
+				level.getWorldRenderer().getMouseJoint() == null) {
 			for (Ball b : level.getBalls()) {
 				if (!b.removed && b.tag == level.getMoveSet().getMoves().first().ballType) {
 					
@@ -50,6 +51,7 @@ public class VacuumItem extends Item {
 	@Override
 	public void onEffectFinished(float delta) {
 		level.itemVacuumActive = false;
+		level.itemVacuumApplied = false;
 	}
 
 

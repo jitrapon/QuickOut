@@ -11,6 +11,19 @@ import com.badlogic.gdx.Gdx;
 public class GameMain extends Game {
 	
 	MainMenuScreen mainMenuScreen;
+	
+	/* all the game modes */
+	public enum GameMode {
+		NORMAL, 					// in this mode, player plays to maximize ball count, score, and combo
+									// round ends when the time indicator reaches zero
+									// score will be calculated by the total count, score, and maximum combo reached
+									// within the allocated time
+		
+		TIMED;						// in this mode, player plays to maximize score, and combo
+									// round ends when the ball count reaches a specified amount
+									// score will be calculated by the total time left, score, and maximum combo reached
+									// within the allocated time
+	}
 
 	@Override
 	public void create () {

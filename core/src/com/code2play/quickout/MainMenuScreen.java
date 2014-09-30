@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.code2play.quickout.GameMain.GameMode;
 
 public class MainMenuScreen implements Screen {
 	
@@ -46,8 +47,9 @@ public class MainMenuScreen implements Screen {
         }
         batch.end();
 
+        // TODO SELECT GAME MODE
         if (Gdx.input.isTouched()) {
-            game.setScreen(new GameScreen(game));
+            game.setScreen(new GameScreen(game, GameMode.NORMAL));
         }
         
         deltaFrame += 1;
