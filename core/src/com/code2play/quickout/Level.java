@@ -62,7 +62,7 @@ public class Level implements IGameManager {
 	public boolean gravityEnabled = true;
 	private static final float BALL_RADIUS = 75.0f;
 	public static final float ITEM_RADIUS = 50.0f;
-	public static final int MAX_NUM_OBJECT_ONSCREEN = 30;						// maximum number of spawnable objects onscreen at this level
+	public static final int MAX_NUM_OBJECT_ONSCREEN = 20;						// maximum number of spawnable objects onscreen at this level
 	public static final int VIRTUAL_WIDTH = 900;								// the screen width in world's coordinate
 	public static final int VIRTUAL_HEIGHT = 1600;								// the screen height in world's coordinate
 	public static final int MAX_VIRTUAL_WIDTH = 1200;
@@ -70,7 +70,7 @@ public class Level implements IGameManager {
 	private static final float MAX_SPEED = 20.0f;								// the maximum speed of any ball
 	public static final float MAX_LEVEL_TIME = 45.0f;							// duration of this level in seconds
 	private float timeLeft;														// time left in this level round
-	private static final float RESPAWN_TIME = 0.5f;								// time in seconds before the next respawn
+	private static final float RESPAWN_TIME = 0.2f;								// time in seconds before the next respawn
 	private static final float MOVE_CHANGE_TIME = 6.5f;							// if used, indicates the time in seconds before the next moveset is changed
 	public boolean spawnMoreBalls = true;										// indicates whether to continue spawning more balls
 	private static final int MAX_NUM_ITEMS = 3;									// maximum number of item slots
