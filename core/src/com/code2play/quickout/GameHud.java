@@ -17,7 +17,6 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.code2play.game.IHud;
@@ -115,7 +114,7 @@ public class GameHud implements IHud {
 	private void fillContent() {
 		// create a score label
 		scoreFont = new BitmapFont();
-		scoreFont.scale(1.7f);
+		scoreFont.getData().setScale(1.7f);
 		scoreStyle = new LabelStyle(scoreFont, Color.WHITE);
 		
 		score = new ScoreLabel(level, "undefined", scoreStyle);
@@ -127,7 +126,7 @@ public class GameHud implements IHud {
 		
 		// create ball count label
 		countFont = new BitmapFont();
-		countFont.scale(2.5f);
+		countFont.getData().setScale(2.5f);
 		countStyle = new LabelStyle(countFont, Color.WHITE);
 		
 		counter = new CounterLabel(level, "0", countStyle);
@@ -135,7 +134,7 @@ public class GameHud implements IHud {
 		
 		// create a timer label
 		timerFont = new BitmapFont();
-		timerFont.scale(1f);
+		timerFont.getData().setScale(1f);
 		timerStyle = new LabelStyle(timerFont, Color.WHITE);
 		
 		timer = new TimerLabel(level, "0", timerStyle);
@@ -213,7 +212,7 @@ public class GameHud implements IHud {
 		// score indicators
 		scoreEffectGroup = new Group();
 		font = new BitmapFont();
-		font.scale(1.5f);
+		font.getData().setScale(1.5f);
 		style = new LabelStyle(font, Color.ORANGE);
 		penaltyStyle = new LabelStyle(font, Color.RED);
 		

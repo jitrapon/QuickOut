@@ -24,7 +24,7 @@ public class MainMenuScreen implements Screen {
 		this.game = game;
 		batch = new SpriteBatch();
 		font = new BitmapFont();
-		font.scale(2);
+		font.getData().setScale(2);
 		
 		camera = new OrthographicCamera();
         camera.setToOrtho(false, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
